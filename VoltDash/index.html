@@ -42,6 +42,20 @@
   .efill.low{background:linear-gradient(90deg,#ff5fa4,#ff2e8b);animation:pulse .48s steps(2,end) infinite}
   @keyframes pulse{50%{opacity:.5}}
   .epct{font-family:var(--display);font-size:.68rem;min-width:2.8em;text-align:right;color:var(--paper)}
+  /* first-run coach: short, stepped, skippable — shown where each input matters */
+  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
+        background:var(--glass,rgba(5,10,22,.84));border:2px solid var(--lime,#a8ff35);border-radius:12px;
+        padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
+  #coach.on{display:flex;animation:coachIn .26s ease-out}
+  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+        color:var(--ink,#04080f);background:var(--lime,#a8ff35);border-radius:6px;padding:3px 7px;white-space:nowrap}
+  #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#eaf6ff);line-height:1.32}
+  #coach .ct b{color:var(--lime,#a8ff35)}
+  #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
+        color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        text-transform:uppercase;font-family:inherit}
+  @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(159,182,214,.32);border-radius:8px;
        padding:3px 9px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
@@ -109,16 +123,17 @@
   </div>
 </div>
 
+<div id="coach" role="status" aria-live="polite">
+  <span class="ck">Tip</span>
+  <span class="ct" id="coachTxt"></span>
+  <button class="cx" id="coachX" type="button">Skip</button>
+</div>
+
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Voltworks Power Co.</div>
   <div class="title" style="margin-top:6px">Volt<br>Dash</div>
   <div class="rule"></div>
-  <p class="lede">You <b>auto-run</b> the live grid and your cell is always draining.
-     <i>Hop</i> the zapper spikes, <i>slide</i> under the hanging conduits, and snatch every
-     <b>battery cell</b> to keep the lights on.</p>
-  <p class="lede">Miss the cells and the last of your charge bleeds away — at <b>0 energy</b> the grid
-     goes dark and the run ends. <b>Dash</b> burns 22 energy for a 1.85&times; burst and 0.7 s of
-     invulnerability: the only way through what you cannot clear.</p>
+  <p class="lede">Auto-run the live grid: <i>hop</i> spikes, <i>slide</i> under conduits, grab every <b>cell</b>. At <b>zero energy</b> the lights go out.</p>
   <div class="legend">
     <span class="lg"><i class="dot" style="background:#a8ff35"></i>Battery cell +12</span>
     <span class="lg"><i class="dot" style="background:#ff2e8b"></i>Zapper · hop it</span>
@@ -147,6 +162,7 @@
   <div id="overStats" style="text-align:left;margin-top:8px"></div>
   <button class="btn" id="again">Run again</button>
   <button class="btn quiet" id="menu2">Back to menu</button>
+  <button class="btn quiet" id="btnShare">Save the score card</button>
 </div></div>
 
 <script>
@@ -312,13 +328,27 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.r
 function updMenuBest(){ $('#menuBest').textContent='Best '+REC.best; }
 function updSnd(){ const b=$('#sndBtn'); b.textContent=AU.on?'Sound On':'Sound Off';
   b.classList.toggle('on',AU.on); }
+/* ── first-run coach: two short steps (hop/slide, then dash), each skippable ── */
+let hintStep=store.get('vd_hint',0)|0, coachT=0, coachAt=0;
+const coachEl=$('#coach'), coachTxt=$('#coachTxt');
+function coachShow(kicker,html,secs){ coachEl.querySelector('.ck').textContent=kicker;
+  coachTxt.innerHTML=html; coachEl.classList.add('on'); coachT=secs||7; coachAt=state.time; }
+function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
+function maybeCoach(){
+  if(state.phase!=='play'||state.paused||coachEl.classList.contains('on')||hintStep>=2)return;
+  if(hintStep===0){ hintStep=1; store.set('vd_hint',1);
+    coachShow('Obstacles','<b>Tap or SPACE</b> to hop spikes \u00b7 <b>\u2193</b> (or swipe down) to slide under conduits',6); }
+  else { hintStep=2; store.set('vd_hint',2);
+    coachShow('Dash','<b>SHIFT</b> (or swipe right) to <b>DASH</b> \u2014 22 volts for a burst that smashes through hits',9); } }
 function hud(){
   const sc=String(scoreNow()),d=Math.floor(state.dist)+'m',ce=String(state.cells);
   if($('#score').textContent!==sc)$('#score').textContent=sc;
   if($('#dist').textContent!==d)$('#dist').textContent=d;
   if($('#cells').textContent!==ce){$('#cells').textContent=ce;$('#cells').classList.toggle('hot',state.cells>0);}
-  const b=String(Math.max(REC.best,scoreNow()));
+  const _ahead=scoreNow()>REC.best;
+  const b=(_ahead?'★ ':'')+String(Math.max(REC.best,scoreNow()));
   if($('#best').textContent!==b)$('#best').textContent=b;
+  if($('#best').classList.contains('hot')!==_ahead)$('#best').classList.toggle('hot',_ahead);
   const zn='Sector '+sectorNum()+' · '+sectorName();
   if($('#sectorName').textContent!==zn)$('#sectorName').textContent=zn;
   const pct=clamp(state.energy,0,ENERGY_MAX)/ENERGY_MAX, w=(pct*100).toFixed(1)+'%';
@@ -366,7 +396,7 @@ function resetWorld(){
   state.frozen=false;
 }
 function startRun(){
-  resetWorld(); state.phase='play'; state.paused=false;
+  resetWorld(); state.phase='play'; state.paused=false; coachHide();
   show(null); $('#hud').style.display='flex';
   AU.init(); AU.go(); hud();
 }
@@ -525,6 +555,11 @@ function update(dt,force){
   }
   if(state.phase==='over'){ state.deadT+=dt; state.runPh+=dt*3; cullEnts(); return; }
   if(state.paused)return;
+  maybeCoach();
+  if(coachEl.classList.contains('on')){
+    if(coachT>0){ coachT-=dt; if(coachT<=0)coachHide(); }
+    if(hintStep===2&&state.dashT>0&&state.time-coachAt>0.8)coachHide();
+  }
 
   state.hitCd=Math.max(0,state.hitCd-dt);
   state.slideLock=Math.max(0,state.slideLock-dt);
@@ -579,8 +614,39 @@ function update(dt,force){
 }
 /* ── the rAF loop ───────────────────────────────────────────────────── */
 let last=0;
+/* ── music bed ───────────────────────────────────────────────────
+   One plain <audio> loop (audio/bed.mp3). Built lazily on the first real user
+   gesture, so nothing is fetched or played before then. Driven from the game
+   phase: it starts with play and stops on pause / menu / over, and the same
+   Sound toggle that mutes the SFX (AU.on) mutes the bed too. */
+const BED=(function(){
+  let el=null,on=false,dead=false,gestured=false;
+  function sync(){
+    const want=!!(AU.on&&gestured&&!dead&&state.phase==='play'&&!state.paused);
+    if(want===on)return;
+    on=want;
+    try{
+      if(want){
+        if(!el){ el=new Audio(); el.preload='auto'; el.loop=true; el.volume=0.26;
+          el.addEventListener('error',function(){dead=true;el=null;},{once:true});
+          el.src='audio/bed.mp3'; }
+        const pr=el.play(); if(pr&&pr.catch)pr.catch(function(){});
+      } else if(el){ el.pause(); }
+    }catch(e){}
+  }
+  function gesture(){ gestured=true; sync(); }
+  addEventListener('pointerdown',gesture,{capture:true,passive:true});
+  addEventListener('keydown',gesture,{capture:true,passive:true});
+  return { sync:sync, el:function(){return el;}, now:function(){return on;},
+    state:function(){ return {on:on,gestured:gestured,dead:dead,
+      src:el?el.getAttribute('src'):null,volume:el?el.volume:null,
+      paused:el?el.paused:null,currentTime:el?+el.currentTime.toFixed(2):null,
+      readyState:el?el.readyState:null}; } };
+})();
+window.__BED=BED;
 function tick(ts){
   requestAnimationFrame(tick);
+  BED.sync();
   const dt=Math.min(((ts-last)/1000)||0,.05); last=ts;
   update(dt,false);
   render();
@@ -1050,6 +1116,7 @@ $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); runOver('lowvolt'); };
 $('#sndBtn').onclick=()=>{ AU.init(); AU.on=!AU.on; store.set('vd_snd',AU.on); updSnd(); AU.ui(); };
+$('#coachX').onclick=coachHide;
 
 /* ── test hook (drives tools/playtest.py; read-mostly, do not remove) ── */
 function place(kind,ahead,y){
@@ -1059,6 +1126,96 @@ function place(kind,ahead,y){
   if(kind==='spike')return placeSpike(z).z;
   return placeBeam(z).z;
 }
+/* ── share card ──────────────────────────────────────────────────────
+   Additive: composites a plain 880x520 PNG from the SAME live numbers the
+   over screen is already showing, so the card can never disagree with the
+   run that produced it. Canvas 2D + toBlob only — no library, no network,
+   no external font, no new localStorage key. */
+var SC_CFG={title:'VOLT DASH',sub:'Hop, slide, dash \u00b7 keep the grid alive',bg:'#04080f',panel:'#0d1a2e',
+  accent:'#a8ff35',ink:'#eaf6ff',dim:'#7d93b5',gold:'#ffb62e',file:'voltdash'};
+function scFont(g,weight,size,text,maxW,family){
+  g.font=weight+' '+size+'px '+family;
+  while(size>8&&g.measureText(text).width>maxW){ size-=1; g.font=weight+' '+size+'px '+family; }
+  return size;
+}
+function scStatRows(){
+  var out=[],ns=document.querySelectorAll('#overStats .log');
+  for(var i=0;i<ns.length;i++){
+    var s=ns[i].querySelector('span'),b=ns[i].querySelector('b');
+    if(s&&b)out.push([s.textContent.trim(),b.textContent.trim()]);
+  }
+  return out;
+}
+function shareCard(){
+  try{
+    var W=880,H=520,c=document.createElement('canvas');c.width=W;c.height=H;
+    var g=c.getContext('2d'),C=SC_CFG;
+    var DF="'Arial Black','Archivo Black',Impact,sans-serif";
+    var TX="'Segoe UI',-apple-system,Roboto,Arial,sans-serif";
+    var MO="ui-monospace,Consolas,'Courier New',monospace";
+    var elK=document.getElementById('overKick'),elT=document.getElementById('overTitle');
+    var kick=(elK&&elK.textContent||'').replace(/\s+/g,' ').trim()||'Run over';
+    var ttl=(elT&&elT.textContent||'').replace(/\s+/g,' ').trim()||'Run Over';
+    var nbEl=document.getElementById('newbest');
+    var nb=!!nbEl&&getComputedStyle(nbEl).display!=='none';
+    var rows=scStatRows();
+
+    g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+    g.fillStyle=C.panel; g.fillRect(0,0,W,104);
+    g.fillStyle=C.accent; g.fillRect(0,0,10,H);
+    g.fillStyle=C.accent; g.fillRect(0,104,W,4);
+
+    scFont(g,800,34,C.title,W-320,DF);
+    g.fillStyle=C.accent; g.fillText(C.title,42,54);
+    scFont(g,600,15,C.sub,W-320,TX);
+    g.fillStyle=C.dim; g.fillText(C.sub,42,84);
+    g.textAlign='right';
+    g.font='700 13px '+DF; g.fillStyle=C.dim; g.fillText('SHARE CARD',W-42,54);
+    g.textAlign='left';
+
+    if(nb){
+      g.textAlign='right';
+      scFont(g,800,18,'\u2605 NEW BEST \u2605',240,DF);
+      g.fillStyle=C.gold; g.fillText('\u2605 NEW BEST \u2605',W-42,166);
+      g.textAlign='left';
+    }
+    scFont(g,700,20,kick,nb?540:760,DF);
+    g.fillStyle=C.accent; g.fillText(kick,42,166);
+
+    scFont(g,800,52,ttl,W-84,DF);
+    g.fillStyle=C.ink; g.fillText(ttl,42,240);
+
+    var n=Math.min(rows.length,8);
+    for(var i=0;i<n;i++){
+      var col=i%2, rw=(i-col)/2;
+      var x=42+col*418, y=300+rw*48;
+      g.font='700 12px '+MO; g.fillStyle=C.dim;
+      g.fillText(String(rows[i][0]).toUpperCase(),x,y);
+      scFont(g,800,22,String(rows[i][1]),386,MO);
+      g.fillStyle=C.ink; g.fillText(String(rows[i][1]),x,y+24);
+    }
+
+    g.fillStyle=C.panel; g.fillRect(0,H-44,W,44);
+    g.fillStyle=C.accent; g.fillRect(0,H-44,W,3);
+    g.font='600 13px '+TX; g.fillStyle=C.dim;
+    g.fillText(new Date().toLocaleDateString(),42,H-16);
+    g.textAlign='right'; g.font='700 13px '+DF; g.fillStyle=C.accent;
+    g.fillText('PLAYABLES \u00b7 '+C.title,W-42,H-16);
+    g.textAlign='left';
+
+    c.toBlob(function(b){
+      if(!b)return;
+      var u=URL.createObjectURL(b),a=document.createElement('a');
+      a.href=u; a.download=C.file+'-card.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+    },'image/png');
+  }catch(e){}
+}
+window.__shareCard=shareCard;
+(function(){ var b=document.getElementById('btnShare');
+  if(b)b.addEventListener('click',shareCard); })();
+
 window.__volt_debug={
   state(){ return {phase:state.phase,paused:state.paused,frozen:state.frozen,frames:state.frames,
     score:scoreNow(),dist:Math.floor(state.dist),distExact:+state.dist.toFixed(2),

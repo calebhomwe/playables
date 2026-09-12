@@ -165,19 +165,32 @@ for (const g of GAMES){
 
 const REC = { RungRunner:"rr_rec", VoltDash:"vd_rec", CrowdClash:"cc_rec",
               HelixDrop:"hx_rec", SnakeClash:"sc_rec", BridgeRush:"br_rec" };
-for (const [dir, key] of Object.entries(REC)){
-  const el = document.querySelector('[data-best="' + dir + '"]');
-  if (!el) continue;
-  try{
-    const raw = localStorage.getItem(key);
-    if (!raw) continue;
-    const rec = JSON.parse(raw);
-    const v = (rec.best !== undefined) ? rec.best
-            : (rec.bestScore !== undefined) ? rec.bestScore
-            : (rec.high !== undefined) ? rec.high : null;
-    if (v !== null) el.textContent = "best " + v;
-  }catch(e){ /* fresh profile or file:// — leave placeholder */ }
+/* The six cabinets record different quantities in .best, so print the unit - otherwise
+   "best 132" reads as a score when it is metres, and "best 14" as a score when it is length. */
+const REC_UNIT = { RungRunner:"", VoltDash:"", CrowdClash:"", HelixDrop:" depth",
+                   SnakeClash:" length", BridgeRush:" m" };
+function refreshBests(){
+  for (const [dir, key] of Object.entries(REC)){
+    const el = document.querySelector('[data-best="' + dir + '"]');
+    if (!el) continue;
+    try{
+      const raw = localStorage.getItem(key);
+      if (!raw){ el.textContent = "best \u2014"; continue; }
+      const rec = JSON.parse(raw);
+      const v = (rec.best !== undefined) ? rec.best
+              : (rec.bestScore !== undefined) ? rec.bestScore
+              : (rec.high !== undefined) ? rec.high : null;
+      el.textContent = (v !== null) ? ("best " + v + (REC_UNIT[dir] || "")) : "best \u2014";
+    }catch(e){ el.textContent = "best \u2014"; }
+  }
 }
+refreshBests();
+/* Was: read once at page load. These cards open in a NEW TAB (target="_blank"), so coming back
+   from a run never re-read the record - localStorage would hold a fresh best while the card still
+   said "best -". The shelf's only meta-progression was permanently stale. */
+document.addEventListener("visibilitychange", function(){ if (!document.hidden) refreshBests(); });
+window.addEventListener("focus", refreshBests);
+window.addEventListener("pageshow", refreshBests);
 document.getElementById("stamp").textContent = "v1.0 · " + GAMES.length + " titles";
 </script>
 </body>

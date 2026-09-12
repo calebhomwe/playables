@@ -37,6 +37,20 @@
       border:1px solid var(--line);color:var(--ink);font-size:.95rem;cursor:pointer;
       backdrop-filter:blur(10px);font-family:var(--text)}
   .ic:active{transform:scale(.94)}
+  /* first-run coach: short, stepped, skippable — shown where each input matters */
+  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
+        background:var(--glass,rgba(10,20,38,.84));border:1.5px solid var(--acc,#3ff08a);border-radius:14px;
+        padding:9px 12px;box-shadow:0 12px 34px rgba(0,0,0,.55);backdrop-filter:blur(10px)}
+  #coach.on{display:flex;animation:coachIn .26s ease-out}
+  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+        color:#04140b;background:var(--acc,#3ff08a);border-radius:7px;padding:3px 8px;white-space:nowrap}
+  #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#eaf6ff);line-height:1.32}
+  #coach .ct b{color:var(--acc,#3ff08a)}
+  #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
+        color:var(--dim,#8fa6c4);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        text-transform:uppercase;font-family:inherit}
+  @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
   .screen{position:fixed;inset:0;display:none;place-items:center;padding:16px;z-index:10;
           background:radial-gradient(120% 90% at 50% 0%,rgba(9,18,34,.5),rgba(3,7,14,.93))}
@@ -92,14 +106,18 @@
   </div>
 </div>
 
+<div id="coach" role="status" aria-live="polite">
+  <span class="ck">Tip</span>
+  <span class="ct" id="coachTxt"></span>
+  <button class="cx" id="coachX" type="button">Skip</button>
+</div>
+
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Arena · one snake versus many</div>
   <div class="title" style="margin-top:6px">Snake<br>Clash</div>
   <div class="rule"></div>
-  <p class="lede">Steer your snake around the arena and <b>eat glowing orbs</b> to grow.
-     Rivals roam, eat and grow too — cut one off so it runs its head into your body
-     and it <b>bursts</b> into a shower of orbs. Touch a rival's body or the
-     <b>wall</b> and you burst instead. Head-on, the longer snake survives.</p>
+  <p class="lede">Eat <b>glowing orbs</b> to grow, and cut a rival off so it bursts into
+     orbs &mdash; touch a body or the <b>wall</b> and you burst instead.</p>
   <div class="howto">
     <span><b>MOUSE</b> aim and steer</span>
     <span><b>← →</b> arrow keys turn</span>
@@ -128,6 +146,7 @@
   <div id="overStats"></div>
   <button class="btn" id="again">Play again</button>
   <button class="btn quiet" id="menu2">Menu</button>
+  <button class="btn quiet" id="btnShare">Save the score card</button>
 </div></div>
 
 <script>
@@ -408,6 +427,11 @@ function update(dt){
     for(const r of state.rivals){if(r.ai)aiSteer(r,dt);moveSnake(r,dt);}
     anim(dt); return;
   }
+  maybeCoach();
+  if(coachEl.classList.contains('on')){
+    if(coachT>0){ coachT-=dt; if(coachT<=0)coachHide(); }
+    if(hintStep===2&&IN.boost&&state.time-coachAt>0.8)coachHide();
+  }
   /* ---- player steering: mouse look, arrows, touch drag ---- */
   state.runTime+=dt;
   let turn=0;
@@ -549,8 +573,39 @@ function render(){
 
 /* ═══ loop ═══ */
 let last=0;
+/* ── music bed ───────────────────────────────────────────────────
+   One plain <audio> loop (audio/bed.mp3). Built lazily on the first real user
+   gesture, so nothing is fetched or played before then. Driven from the game
+   phase: it starts with play and stops on pause / menu / over, and the same
+   Sound toggle that mutes the SFX (AU.on) mutes the bed too. */
+const BED=(function(){
+  let el=null,on=false,dead=false,gestured=false;
+  function sync(){
+    const want=!!(AU.on&&gestured&&!dead&&state.phase==='play'&&!state.paused);
+    if(want===on)return;
+    on=want;
+    try{
+      if(want){
+        if(!el){ el=new Audio(); el.preload='auto'; el.loop=true; el.volume=0.26;
+          el.addEventListener('error',function(){dead=true;el=null;},{once:true});
+          el.src='audio/bed.mp3'; }
+        const pr=el.play(); if(pr&&pr.catch)pr.catch(function(){});
+      } else if(el){ el.pause(); }
+    }catch(e){}
+  }
+  function gesture(){ gestured=true; sync(); }
+  addEventListener('pointerdown',gesture,{capture:true,passive:true});
+  addEventListener('keydown',gesture,{capture:true,passive:true});
+  return { sync:sync, el:function(){return el;}, now:function(){return on;},
+    state:function(){ return {on:on,gestured:gestured,dead:dead,
+      src:el?el.getAttribute('src'):null,volume:el?el.volume:null,
+      paused:el?el.paused:null,currentTime:el?+el.currentTime.toFixed(2):null,
+      readyState:el?el.readyState:null}; } };
+})();
+window.__BED=BED;
 function tick(ts){
   requestAnimationFrame(tick);
+  BED.sync();
   const dt=Math.min((ts-last)/1000||0,.05); last=ts;
   if(!state.paused&&!state.freeze)update(dt);
   render();
@@ -573,7 +628,19 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
   if(id)$(id).classList.add('on');}
 function menuHud(){const b=$('#best');if(b)b.textContent=Math.max(REC.best,state.best);}
 function syncSnd(){const b=$('#sndBtn');if(b)b.textContent=AU.on?'♪':'✕';}
-function startGame(){AU.init();reset();state.phase='play';show(null);
+/* ── first-run coach: two short steps (steer, then boost), each skippable ── */
+let hintStep=store.get('sc_hint',0)|0, coachT=0, coachAt=0;
+const coachEl=$('#coach'), coachTxt=$('#coachTxt');
+function coachShow(kicker,html,secs){ coachEl.querySelector('.ck').textContent=kicker;
+  coachTxt.innerHTML=html; coachEl.classList.add('on'); coachT=secs||7; coachAt=state.time; }
+function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
+function maybeCoach(){
+  if(state.phase!=='play'||state.paused||coachEl.classList.contains('on')||hintStep>=2)return;
+  if(hintStep===0){ hintStep=1; store.set('sc_hint',1);
+    coachShow('Steer','<b>Move the mouse</b> (or <b>\u2190 \u2192</b>) to aim \u2014 chase the glowing orbs',6); }
+  else { hintStep=2; store.set('sc_hint',2);
+    coachShow('Boost','Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
+function startGame(){AU.init();reset();state.phase='play';coachHide();show(null);
   $('#hud').style.display='flex';hud();AU.click();}
 function togglePause(){if(state.phase!=='play')return;state.paused=!state.paused;
   show(state.paused?'#s-pause':null);}
@@ -639,8 +706,99 @@ $('#menu2').onclick=()=>toMenu();
 $('#menu3').onclick=()=>toMenu();
 $('#pauseBtn').onclick=()=>{if(state.phase==='play')togglePause();};
 $('#sndBtn').onclick=()=>{AU.init();AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();AU.click();};
+$('#coachX').onclick=coachHide;
 
 /* ═══ test hook (used by tools/playtest.py) ═══ */
+/* ── share card ──────────────────────────────────────────────────────
+   Additive: composites a plain 880x520 PNG from the SAME live numbers the
+   over screen is already showing, so the card can never disagree with the
+   run that produced it. Canvas 2D + toBlob only — no library, no network,
+   no external font, no new localStorage key. */
+var SC_CFG={title:'SNAKE CLASH',sub:'Eat orbs \u00b7 out-grow the rivals',bg:'#070c18',panel:'#0d1830',
+  accent:'#3ff08a',ink:'#eaf6ff',dim:'#8fa6c4',gold:'#ffc63f',file:'snakeclash'};
+function scFont(g,weight,size,text,maxW,family){
+  g.font=weight+' '+size+'px '+family;
+  while(size>8&&g.measureText(text).width>maxW){ size-=1; g.font=weight+' '+size+'px '+family; }
+  return size;
+}
+function scStatRows(){
+  var out=[],ns=document.querySelectorAll('#overStats .log');
+  for(var i=0;i<ns.length;i++){
+    var s=ns[i].querySelector('span'),b=ns[i].querySelector('b');
+    if(s&&b)out.push([s.textContent.trim(),b.textContent.trim()]);
+  }
+  return out;
+}
+function shareCard(){
+  try{
+    var W=880,H=520,c=document.createElement('canvas');c.width=W;c.height=H;
+    var g=c.getContext('2d'),C=SC_CFG;
+    var DF="'Arial Black','Archivo Black',Impact,sans-serif";
+    var TX="'Segoe UI',-apple-system,Roboto,Arial,sans-serif";
+    var MO="ui-monospace,Consolas,'Courier New',monospace";
+    var elK=document.getElementById('overKick'),elT=document.getElementById('overTitle');
+    var kick=(elK&&elK.textContent||'').replace(/\s+/g,' ').trim()||'Run over';
+    var ttl=(elT&&elT.textContent||'').replace(/\s+/g,' ').trim()||'Run Over';
+    var nbEl=document.getElementById('newbest');
+    var nb=!!nbEl&&getComputedStyle(nbEl).display!=='none';
+    var rows=scStatRows();
+
+    g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+    g.fillStyle=C.panel; g.fillRect(0,0,W,104);
+    g.fillStyle=C.accent; g.fillRect(0,0,10,H);
+    g.fillStyle=C.accent; g.fillRect(0,104,W,4);
+
+    scFont(g,800,34,C.title,W-320,DF);
+    g.fillStyle=C.accent; g.fillText(C.title,42,54);
+    scFont(g,600,15,C.sub,W-320,TX);
+    g.fillStyle=C.dim; g.fillText(C.sub,42,84);
+    g.textAlign='right';
+    g.font='700 13px '+DF; g.fillStyle=C.dim; g.fillText('SHARE CARD',W-42,54);
+    g.textAlign='left';
+
+    if(nb){
+      g.textAlign='right';
+      scFont(g,800,18,'\u2605 NEW BEST \u2605',240,DF);
+      g.fillStyle=C.gold; g.fillText('\u2605 NEW BEST \u2605',W-42,166);
+      g.textAlign='left';
+    }
+    scFont(g,700,20,kick,nb?540:760,DF);
+    g.fillStyle=C.accent; g.fillText(kick,42,166);
+
+    scFont(g,800,52,ttl,W-84,DF);
+    g.fillStyle=C.ink; g.fillText(ttl,42,240);
+
+    var n=Math.min(rows.length,8);
+    for(var i=0;i<n;i++){
+      var col=i%2, rw=(i-col)/2;
+      var x=42+col*418, y=300+rw*48;
+      g.font='700 12px '+MO; g.fillStyle=C.dim;
+      g.fillText(String(rows[i][0]).toUpperCase(),x,y);
+      scFont(g,800,22,String(rows[i][1]),386,MO);
+      g.fillStyle=C.ink; g.fillText(String(rows[i][1]),x,y+24);
+    }
+
+    g.fillStyle=C.panel; g.fillRect(0,H-44,W,44);
+    g.fillStyle=C.accent; g.fillRect(0,H-44,W,3);
+    g.font='600 13px '+TX; g.fillStyle=C.dim;
+    g.fillText(new Date().toLocaleDateString(),42,H-16);
+    g.textAlign='right'; g.font='700 13px '+DF; g.fillStyle=C.accent;
+    g.fillText('PLAYABLES \u00b7 '+C.title,W-42,H-16);
+    g.textAlign='left';
+
+    c.toBlob(function(b){
+      if(!b)return;
+      var u=URL.createObjectURL(b),a=document.createElement('a');
+      a.href=u; a.download=C.file+'-card.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+    },'image/png');
+  }catch(e){}
+}
+window.__shareCard=shareCard;
+(function(){ var b=document.getElementById('btnShare');
+  if(b)b.addEventListener('click',shareCard); })();
+
 window.__snake_debug={
   state:()=>{const p=state.player;
     return {phase:state.phase,paused:state.paused,freeze:state.freeze,frames:state.frames,

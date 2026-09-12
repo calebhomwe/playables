@@ -38,6 +38,20 @@
   .cell.hero .val{font-size:clamp(1.15rem,3.6vw,1.7rem);color:var(--mint)}
   #sndBtn{pointer-events:auto;cursor:pointer;font-family:inherit;color:var(--dim)}
   #sndBtn.on{color:var(--mint)}
+  /* first-run coach: one core input, shown where it first matters, skippable */
+  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,460px);
+        background:var(--glass,rgba(9,13,34,.86));border:2px solid var(--mint,#2fe0c8);border-radius:12px;
+        padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
+  #coach.on{display:flex;animation:coachIn .26s ease-out}
+  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+        color:var(--ink,#080c1c);background:var(--mint,#2fe0c8);border-radius:6px;padding:3px 7px;white-space:nowrap}
+  #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#eef2ff);line-height:1.32}
+  #coach .ct b{color:var(--mint,#2fe0c8)}
+  #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
+        color:var(--dim,#7d89b8);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        text-transform:uppercase;font-family:inherit}
+  @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(170,184,224,.34);border-radius:9px;
        padding:3px 10px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
@@ -100,14 +114,17 @@
   </div>
 </div>
 
+<div id="coach" role="status" aria-live="polite">
+  <span class="ck">Tip</span>
+  <span class="ct" id="coachTxt"></span>
+  <button class="cx" id="coachX" type="button">Skip</button>
+</div>
+
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Tower Rotator Co.</div>
   <div class="title" style="margin-top:6px">Helix<br>Drop</div>
   <div class="rule"></div>
-  <p class="lede">A ball falls down a rotating helix tower. <b>Rotate</b> the tower so the
-     <b>gap</b> in each ring slides under the ball &mdash; drop through and go deeper.</p>
-  <p class="lede">Safe rings <b>bounce</b>, gold rings pay a <b>bonus</b>, and red rings
-     <b>end the run</b> on contact. Deeper rings fall faster and hide more danger.</p>
+  <p class="lede">Rotate the tower so the <b>gap</b> in each ring slides under the ball &mdash; drop <b>deeper</b> for more.</p>
   <div class="legend">
     <span class="lg"><i class="dot" style="background:#2fe0c8"></i>ball</span>
     <span class="lg"><i class="dot" style="background:#5b6ee1"></i>safe bouncer</span>
@@ -142,6 +159,7 @@
   <div id="overStats" style="text-align:left"></div>
   <button class="btn" id="again">Drop again</button>
   <button class="btn quiet" id="menu2">Back to menu</button>
+  <button class="btn quiet" id="btnShare">Save the score card</button>
 </div></div>
 
 <script>
@@ -320,6 +338,16 @@ function hud(){ $('#depth').textContent=state.depth; $('#level').textContent=tie
   $('#comboChip').textContent=state.combo>1?('Combo \u00d7'+state.combo):'Combo \u2014'; }
 function updMenuBest(){ $('#menuBest').textContent='Best depth '+REC.best; }
 function updSnd(){ const b=$('#sndBtn'); b.textContent=AU.on?'Sound On':'Sound Off'; b.classList.toggle('on',AU.on); }
+/* ── first-run coach: teach the ONE core input at the moment it matters ── */
+const HINT=store.get('hx_hint',false);
+let hintSeen=!!HINT, coachT=0, coachRot0=0, coachAt=0;
+const coachEl=$('#coach'), coachTxt=$('#coachTxt');
+function coach(kicker,html,secs){ if(hintSeen)return; hintSeen=true; store.set('hx_hint',true);
+  coachEl.querySelector('.ck').textContent=kicker; coachTxt.innerHTML=html;
+  coachEl.classList.add('on'); coachT=secs||8; coachAt=state.time; coachRot0=state.rot; }
+function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
+function maybeCoach(){ if(hintSeen||state.phase!=='play'||state.paused)return;
+  coach('Spin the tower','<b>Drag</b> or hold <b>\u2190 \u2192</b> to rotate the ring until the gap sits under the ball',8); }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   if(id)$(id).classList.add('on'); }
 
@@ -352,10 +380,10 @@ function update(dt){
   state.slowmo=Math.max(0,state.slowmo-dt);
   ball.squash=Math.max(0,ball.squash-dt*5);
   for(let i=state.parts.length-1;i>=0;i--){const p=state.parts[i];
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt;p.r+=p.vr*dt;p.a-=dt*p.va;
-    if(p.a<=0)state.parts.splice(i,1);}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt;p.r=Math.max(0,p.r+p.vr*dt);p.a-=dt*p.va;
+    if(p.a<=0||p.r<=0)state.parts.splice(i,1);}
   for(let i=state.rings.length-1;i>=0;i--){const r=state.rings[i];
-    r.r+=r.vr*dt;r.a-=dt*r.va;if(r.a<=0)state.rings.splice(i,1);}
+    r.r=Math.max(0,r.r+r.vr*dt);r.a-=dt*r.va;if(r.a<=0||r.r<=0)state.rings.splice(i,1);}
   for(let i=state.floats.length-1;i>=0;i--){const f=state.floats[i];
     f.y-=f.vy*dt;f.a-=dt*.9;if(f.a<=0)state.floats.splice(i,1);}
   const half=(W/2)/ZOOM;
@@ -364,10 +392,15 @@ function update(dt){
     if(m.y>state.camY+H/ZOOM+70)m.y=state.camY-H/ZOOM*.4; }
 
   if(state.phase!=='play')return;
+  maybeCoach();
 
   const ramp=Math.min(ROT_MAX,ROT_SPEED+state.depth*ROT_RAMP);
   let rv=0; if(input.left)rv-=1; if(input.right)rv+=1;
   state.rot+=rv*ramp*dt;
+  if(coachEl.classList.contains('on')){
+    if(coachT>0){ coachT-=dt; if(coachT<=0)coachHide(); }
+    if(state.time-coachAt>1&&(Math.abs(state.rot-coachRot0)>0.12||input.left||input.right))coachHide();
+  }
 
   const i=state.ring, topY=i*LEVEL_H;
   const g=GRAVITY*Math.min(2.3,1+state.depth*.02);
@@ -490,11 +523,11 @@ function drawBall(){ const px=sx(ball.x), py=sy(ball.y), r=BALL_R*ZOOM, sq=ball.
   ctx.arc(-r*.33,-r*.42,r*.22,0,6.2832); ctx.fill(); ctx.restore(); }
 function drawFX(){ for(const p of state.parts){ ctx.globalAlpha=Math.max(0,p.a);
     ctx.fillStyle=p.col||P.steel; const px=sx(p.x), py=sy(p.y);
-    ctx.beginPath(); ctx.arc(px,py,p.r*ZOOM,0,6.2832); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(px,py,Math.max(0,p.r*ZOOM),0,6.2832); ctx.fill(); }
   ctx.globalAlpha=1;
   for(const r of state.rings){ ctx.globalAlpha=Math.max(0,r.a);
     ctx.strokeStyle=r.col||P.mint; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.arc(sx(r.x),sy(r.y),r.r*ZOOM,0,6.2832); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(sx(r.x),sy(r.y),Math.max(0,r.r*ZOOM),0,6.2832); ctx.stroke(); }
   ctx.globalAlpha=1;
   ctx.textAlign='center'; ctx.textBaseline='middle';
   for(const f of state.floats){ const a=Math.max(0,f.a);
@@ -554,18 +587,140 @@ $('#resume').addEventListener('click',()=>{ togglePause(false); });
 $('#quit').addEventListener('click',()=>{ gameOver('quit'); });
 $('#menu2').addEventListener('click',()=>{ toMenu(); });
 $('#sndBtn').addEventListener('click',toggleSound);
+$('#coachX').addEventListener('click',coachHide);
 
 document.addEventListener('visibilitychange',()=>{ if(document.hidden&&state.phase==='play'&&!state.paused) togglePause(true); });
 
 /* ── main loop: rAF, slow-mo cap, hard dt clamp ── */
 let last=0;
+/* ── music bed ───────────────────────────────────────────────────
+   One plain <audio> loop (audio/bed.mp3). Built lazily on the first real user
+   gesture, so nothing is fetched or played before then. Driven from the game
+   phase: it starts with play and stops on pause / menu / over, and the same
+   Sound toggle that mutes the SFX (AU.on) mutes the bed too. */
+const BED=(function(){
+  let el=null,on=false,dead=false,gestured=false;
+  function sync(){
+    const want=!!(AU.on&&gestured&&!dead&&state.phase==='play'&&!state.paused);
+    if(want===on)return;
+    on=want;
+    try{
+      if(want){
+        if(!el){ el=new Audio(); el.preload='auto'; el.loop=true; el.volume=0.26;
+          el.addEventListener('error',function(){dead=true;el=null;},{once:true});
+          el.src='audio/bed.mp3'; }
+        const pr=el.play(); if(pr&&pr.catch)pr.catch(function(){});
+      } else if(el){ el.pause(); }
+    }catch(e){}
+  }
+  function gesture(){ gestured=true; sync(); }
+  addEventListener('pointerdown',gesture,{capture:true,passive:true});
+  addEventListener('keydown',gesture,{capture:true,passive:true});
+  return { sync:sync, el:function(){return el;}, now:function(){return on;},
+    state:function(){ return {on:on,gestured:gestured,dead:dead,
+      src:el?el.getAttribute('src'):null,volume:el?el.volume:null,
+      paused:el?el.paused:null,currentTime:el?+el.currentTime.toFixed(2):null,
+      readyState:el?el.readyState:null}; } };
+})();
+window.__BED=BED;
 function tick(now){ requestAnimationFrame(tick);
+  BED.sync();
   if(!last)last=now; let dt=(now-last)/1000; last=now;
   if(!(dt>0))dt=0; if(dt>0.05)dt=0.05;
   if(state.phase==='play'&&!state.paused&&!state.frozen){ update(state.slowmo>0?dt*0.4:dt); }
   render(); }
 
 /* ── deterministic test hook (window.__helix_debug) ── */
+/* ── share card ──────────────────────────────────────────────────────
+   Additive: composites a plain 880x520 PNG from the SAME live numbers the
+   over screen is already showing, so the card can never disagree with the
+   run that produced it. Canvas 2D + toBlob only — no library, no network,
+   no external font, no new localStorage key. */
+var SC_CFG={title:'HELIX DROP',sub:'Spin the tower \u00b7 thread the gap',bg:'#080c1c',panel:'#151a3d',
+  accent:'#2fe0c8',ink:'#eef2ff',dim:'#7d89b8',gold:'#ffc63f',file:'helixdrop'};
+function scFont(g,weight,size,text,maxW,family){
+  g.font=weight+' '+size+'px '+family;
+  while(size>8&&g.measureText(text).width>maxW){ size-=1; g.font=weight+' '+size+'px '+family; }
+  return size;
+}
+function scStatRows(){
+  var out=[],ns=document.querySelectorAll('#overStats .log');
+  for(var i=0;i<ns.length;i++){
+    var s=ns[i].querySelector('span'),b=ns[i].querySelector('b');
+    if(s&&b)out.push([s.textContent.trim(),b.textContent.trim()]);
+  }
+  return out;
+}
+function shareCard(){
+  try{
+    var W=880,H=520,c=document.createElement('canvas');c.width=W;c.height=H;
+    var g=c.getContext('2d'),C=SC_CFG;
+    var DF="'Arial Black','Archivo Black',Impact,sans-serif";
+    var TX="'Segoe UI',-apple-system,Roboto,Arial,sans-serif";
+    var MO="ui-monospace,Consolas,'Courier New',monospace";
+    var elK=document.getElementById('overKick'),elT=document.getElementById('overTitle');
+    var kick=(elK&&elK.textContent||'').replace(/\s+/g,' ').trim()||'Run over';
+    var ttl=(elT&&elT.textContent||'').replace(/\s+/g,' ').trim()||'Run Over';
+    var nbEl=document.getElementById('newbest');
+    var nb=!!nbEl&&getComputedStyle(nbEl).display!=='none';
+    var rows=scStatRows();
+
+    g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+    g.fillStyle=C.panel; g.fillRect(0,0,W,104);
+    g.fillStyle=C.accent; g.fillRect(0,0,10,H);
+    g.fillStyle=C.accent; g.fillRect(0,104,W,4);
+
+    scFont(g,800,34,C.title,W-320,DF);
+    g.fillStyle=C.accent; g.fillText(C.title,42,54);
+    scFont(g,600,15,C.sub,W-320,TX);
+    g.fillStyle=C.dim; g.fillText(C.sub,42,84);
+    g.textAlign='right';
+    g.font='700 13px '+DF; g.fillStyle=C.dim; g.fillText('SHARE CARD',W-42,54);
+    g.textAlign='left';
+
+    if(nb){
+      g.textAlign='right';
+      scFont(g,800,18,'\u2605 NEW BEST \u2605',240,DF);
+      g.fillStyle=C.gold; g.fillText('\u2605 NEW BEST \u2605',W-42,166);
+      g.textAlign='left';
+    }
+    scFont(g,700,20,kick,nb?540:760,DF);
+    g.fillStyle=C.accent; g.fillText(kick,42,166);
+
+    scFont(g,800,52,ttl,W-84,DF);
+    g.fillStyle=C.ink; g.fillText(ttl,42,240);
+
+    var n=Math.min(rows.length,8);
+    for(var i=0;i<n;i++){
+      var col=i%2, rw=(i-col)/2;
+      var x=42+col*418, y=300+rw*48;
+      g.font='700 12px '+MO; g.fillStyle=C.dim;
+      g.fillText(String(rows[i][0]).toUpperCase(),x,y);
+      scFont(g,800,22,String(rows[i][1]),386,MO);
+      g.fillStyle=C.ink; g.fillText(String(rows[i][1]),x,y+24);
+    }
+
+    g.fillStyle=C.panel; g.fillRect(0,H-44,W,44);
+    g.fillStyle=C.accent; g.fillRect(0,H-44,W,3);
+    g.font='600 13px '+TX; g.fillStyle=C.dim;
+    g.fillText(new Date().toLocaleDateString(),42,H-16);
+    g.textAlign='right'; g.font='700 13px '+DF; g.fillStyle=C.accent;
+    g.fillText('PLAYABLES \u00b7 '+C.title,W-42,H-16);
+    g.textAlign='left';
+
+    c.toBlob(function(b){
+      if(!b)return;
+      var u=URL.createObjectURL(b),a=document.createElement('a');
+      a.href=u; a.download=C.file+'-card.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+    },'image/png');
+  }catch(e){}
+}
+window.__shareCard=shareCard;
+(function(){ var b=document.getElementById('btnShare');
+  if(b)b.addEventListener('click',shareCard); })();
+
 window.__helix_debug={
   state(){ return {phase:state.phase,paused:state.paused,frozen:state.frozen,frames:state.frames,
     ring:state.ring,depth:state.depth,rot:+state.rot.toFixed(3),combo:state.combo,bonus:state.bonus,

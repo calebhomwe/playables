@@ -44,6 +44,20 @@
   @keyframes bob{50%{transform:translateY(-3px)}}
   #sndBtn{pointer-events:auto;cursor:pointer;background:none;border:none;color:var(--muted)}
   #sndBtn.on{color:var(--good)}
+  /* first-run coach: one core input, shown where it first matters, skippable */
+  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+        z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,460px);
+        background:var(--paper,#fffaf0);border:3px solid var(--ink,#2a1b3d);border-radius:14px;
+        padding:8px 11px;box-shadow:0 7px 0 rgba(42,27,61,.3)}
+  #coach.on{display:flex;animation:coachIn .26s ease-out}
+  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.13em;text-transform:uppercase;
+        color:#fff;background:var(--good,#1fc47f);border-radius:8px;padding:3px 8px;white-space:nowrap}
+  #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#2a1b3d);line-height:1.32}
+  #coach .ct b{color:var(--bad,#f0454f)}
+  #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(42,27,61,.12);
+        color:var(--muted,#8b7aa8);border-radius:8px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        text-transform:uppercase;font-family:inherit;font-weight:800}
+  @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
   /* -- screens -- */
   .screen{position:fixed;inset:0;display:none;place-items:center;padding:14px;z-index:10;
@@ -102,17 +116,17 @@
   <div id="bossChip">Boss gate ahead</div>
 </div>
 
+<div id="coach" role="status" aria-live="polite">
+  <span class="ck">Tip</span>
+  <span class="ct" id="coachTxt"></span>
+  <button class="cx" id="coachX" type="button">Skip</button>
+</div>
+
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Chunky Crowd Co.</div>
   <div class="title" style="margin-top:5px">Crowd<br>Clash</div>
   <div class="rule"></div>
-  <p class="lede">You <b>steer</b> a whole crowd of little characters down the track.
-     Every <b>gate</b> splits the road in two: slide through the side you want.
-     Grow the crowd with <b>&times;2</b> and <b>+7</b> gates, and dodge the <b>&divide;3</b>
-     and <b>&minus;12</b> gates that shrink it.</p>
-  <p class="lede">Spinning bars and swinging maces knock your members flying on contact &mdash;
-     a bigger crowd is a stronger crowd. At the end of the road a <b>boss gate</b> waits:
-     carry enough crowd and you burst it open.</p>
+  <p class="lede">Steer your crowd down the track: take the gates that <b>grow</b> you, dodge the ones that <b>shrink</b> you, then burst the <b>boss gate</b>.</p>
   <div class="legend">
     <span class="lg"><i class="dot" style="background:#1fc47f"></i>&times;2 &middot; +7 grow</span>
     <span class="lg"><i class="dot" style="background:#f0454f"></i>&divide;3 &middot; &minus;12 shrink</span>
@@ -146,6 +160,7 @@
   <div id="overStats" style="text-align:left;margin-top:7px"></div>
   <button class="btn" id="again">Run again</button>
   <button class="btn quiet" id="menu2">Back to menu</button>
+  <button class="btn quiet" id="btnShare">Save the score card</button>
 </div></div>
 
 <script>
@@ -242,7 +257,7 @@ function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHei
 addEventListener('resize',resize); resize();
 
 /* ── constants (the whole game is tuned right here) ── */
-const BOSS_Z=920, BOSS_HP=60;                 /* the finale gate           */
+const BOSS_Z=920, BOSS_HP=45;   /* reachable once you learn to stack x2 gates */                 /* the finale gate           */
 const SPEED0=12.5, SPEED1=24, SPEED_RAMP=BOSS_Z, MENU_SPEED=8;
 const GATE_EVERY0=32, GATE_EVERY1=19;         /* metres between gates      */
 const OBS_EVERY0=44, OBS_EVERY1=23;           /* metres between hazards    */
@@ -544,7 +559,9 @@ function hud(){
   $('#dist').textContent=Math.floor(state.dist)+'m';
   $('#score').textContent=scoreNow();
   $('#peak').textContent=state.peak;
-  $('#best').textContent=Math.max(REC.best||0,scoreNow());
+  const _ahead=scoreNow()>(REC.best||0);
+  $('#best').textContent=(_ahead?'★ ':'')+Math.max(REC.best||0,scoreNow());
+  $('#best').classList.toggle('hot',_ahead);
   const near=state.dist>BOSS_Z-150;
   const chip=$('#bossChip');
   chip.style.display=(near&&state.phase==='play')?'inline-block':'none';
@@ -560,6 +577,20 @@ function show(id){ const s=document.querySelectorAll('.screen');
 function updMenuBest(){ $('#menuBest').textContent='Best '+(REC.best||0); }
 function updSnd(){ const b=$('#sndBtn'); b.textContent=AU.on?'Sound On':'Sound Off';
   b.classList.toggle('on',AU.on); }
+/* ── first-run coach: teach the ONE core input at the moment it matters ── */
+const HINT=store.get('cc_hint',false);
+let hintSeen=!!HINT, coachT=0;
+const coachEl=$('#coach'), coachTxt=$('#coachTxt');
+function coach(kicker,html,secs){ if(hintSeen)return;
+  hintSeen=true; store.set('cc_hint',true);
+  coachEl.querySelector('.ck').textContent=kicker; coachTxt.innerHTML=html;
+  coachEl.classList.add('on'); coachT=secs||7; }
+function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
+function nextGateZ(){ let z=1e9; for(let i=0;i<ents.length;i++){ const e=ents[i];
+  if(e.type==='gate'&&!e.done&&e.z>state.dist&&e.z<z)z=e.z; } return z; }
+function maybeCoach(){ if(hintSeen||state.phase!=='play'||state.paused)return;
+  if(nextGateZ()-state.dist<22)
+    coach('First gate','Steer into the <b>\u00d72</b> or <b>+</b> half to grow the crowd \u2014 the boss gate needs <b>'+BOSS_HP+'</b>',8); }
 
 /* ── run control ── */
 function startRun(){
@@ -663,11 +694,45 @@ function update(dt,force){
   checkEnts();
   for(let i=ents.length-1;i>=0;i--){ const e=ents[i];
     if(e.type!=='boss'&&e.z<state.dist-14)ents.splice(i,1); }
+  if(coachT>0&&coachEl.classList.contains('on')){ coachT-=dt; if(coachT<=0)coachHide(); }
+  if(coachEl.classList.contains('on')&&(state.gates>0||state.posts>0))coachHide();
+  maybeCoach();
   hud();
 }
 let last=0;
+/* ── music bed ───────────────────────────────────────────────────
+   One plain <audio> loop (audio/bed.mp3). Built lazily on the first real user
+   gesture, so nothing is fetched or played before then. Driven from the game
+   phase: it starts with play and stops on pause / menu / over, and the same
+   Sound toggle that mutes the SFX (AU.on) mutes the bed too. */
+const BED=(function(){
+  let el=null,on=false,dead=false,gestured=false;
+  function sync(){
+    const want=!!(AU.on&&gestured&&!dead&&state.phase==='play'&&!state.paused);
+    if(want===on)return;
+    on=want;
+    try{
+      if(want){
+        if(!el){ el=new Audio(); el.preload='auto'; el.loop=true; el.volume=0.26;
+          el.addEventListener('error',function(){dead=true;el=null;},{once:true});
+          el.src='audio/bed.mp3'; }
+        const pr=el.play(); if(pr&&pr.catch)pr.catch(function(){});
+      } else if(el){ el.pause(); }
+    }catch(e){}
+  }
+  function gesture(){ gestured=true; sync(); }
+  addEventListener('pointerdown',gesture,{capture:true,passive:true});
+  addEventListener('keydown',gesture,{capture:true,passive:true});
+  return { sync:sync, el:function(){return el;}, now:function(){return on;},
+    state:function(){ return {on:on,gestured:gestured,dead:dead,
+      src:el?el.getAttribute('src'):null,volume:el?el.volume:null,
+      paused:el?el.paused:null,currentTime:el?+el.currentTime.toFixed(2):null,
+      readyState:el?el.readyState:null}; } };
+})();
+window.__BED=BED;
 function tick(ts){
   requestAnimationFrame(tick);
+  BED.sync();
   const dt=Math.min(((ts-last)/1000)||0,.05); last=ts;
   update(dt,false);
   render();
@@ -1067,8 +1132,99 @@ $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); runOver('quit'); };
 $('#sndBtn').onclick=()=>{ AU.init(); AU.on=!AU.on; store.set('cc_snd',AU.on); updSnd(); AU.ui(); };
+$('#coachX').onclick=coachHide;
 
 /* ── test hook: drives tools/playtest.py. read-mostly, do not remove. ── */
+/* ── share card ──────────────────────────────────────────────────────
+   Additive: composites a plain 880x520 PNG from the SAME live numbers the
+   over screen is already showing, so the card can never disagree with the
+   run that produced it. Canvas 2D + toBlob only — no library, no network,
+   no external font, no new localStorage key. */
+var SC_CFG={title:'CROWD CLASH',sub:'Grow the crowd \u00b7 burst the boss gate',bg:'#2a1b3d',panel:'#3a2853',
+  accent:'#ffd23f',ink:'#fffaf0',dim:'#8b7aa8',gold:'#ffd23f',file:'crowdclash'};
+function scFont(g,weight,size,text,maxW,family){
+  g.font=weight+' '+size+'px '+family;
+  while(size>8&&g.measureText(text).width>maxW){ size-=1; g.font=weight+' '+size+'px '+family; }
+  return size;
+}
+function scStatRows(){
+  var out=[],ns=document.querySelectorAll('#overStats .log');
+  for(var i=0;i<ns.length;i++){
+    var s=ns[i].querySelector('span'),b=ns[i].querySelector('b');
+    if(s&&b)out.push([s.textContent.trim(),b.textContent.trim()]);
+  }
+  return out;
+}
+function shareCard(){
+  try{
+    var W=880,H=520,c=document.createElement('canvas');c.width=W;c.height=H;
+    var g=c.getContext('2d'),C=SC_CFG;
+    var DF="'Arial Black','Archivo Black',Impact,sans-serif";
+    var TX="'Segoe UI',-apple-system,Roboto,Arial,sans-serif";
+    var MO="ui-monospace,Consolas,'Courier New',monospace";
+    var elK=document.getElementById('overKick'),elT=document.getElementById('overTitle');
+    var kick=(elK&&elK.textContent||'').replace(/\s+/g,' ').trim()||'Run over';
+    var ttl=(elT&&elT.textContent||'').replace(/\s+/g,' ').trim()||'Run Over';
+    var nbEl=document.getElementById('newbest');
+    var nb=!!nbEl&&getComputedStyle(nbEl).display!=='none';
+    var rows=scStatRows();
+
+    g.fillStyle=C.bg; g.fillRect(0,0,W,H);
+    g.fillStyle=C.panel; g.fillRect(0,0,W,104);
+    g.fillStyle=C.accent; g.fillRect(0,0,10,H);
+    g.fillStyle=C.accent; g.fillRect(0,104,W,4);
+
+    scFont(g,800,34,C.title,W-320,DF);
+    g.fillStyle=C.accent; g.fillText(C.title,42,54);
+    scFont(g,600,15,C.sub,W-320,TX);
+    g.fillStyle=C.dim; g.fillText(C.sub,42,84);
+    g.textAlign='right';
+    g.font='700 13px '+DF; g.fillStyle=C.dim; g.fillText('SHARE CARD',W-42,54);
+    g.textAlign='left';
+
+    if(nb){
+      g.textAlign='right';
+      scFont(g,800,18,'\u2605 NEW BEST \u2605',240,DF);
+      g.fillStyle=C.gold; g.fillText('\u2605 NEW BEST \u2605',W-42,166);
+      g.textAlign='left';
+    }
+    scFont(g,700,20,kick,nb?540:760,DF);
+    g.fillStyle=C.accent; g.fillText(kick,42,166);
+
+    scFont(g,800,52,ttl,W-84,DF);
+    g.fillStyle=C.ink; g.fillText(ttl,42,240);
+
+    var n=Math.min(rows.length,8);
+    for(var i=0;i<n;i++){
+      var col=i%2, rw=(i-col)/2;
+      var x=42+col*418, y=300+rw*48;
+      g.font='700 12px '+MO; g.fillStyle=C.dim;
+      g.fillText(String(rows[i][0]).toUpperCase(),x,y);
+      scFont(g,800,22,String(rows[i][1]),386,MO);
+      g.fillStyle=C.ink; g.fillText(String(rows[i][1]),x,y+24);
+    }
+
+    g.fillStyle=C.panel; g.fillRect(0,H-44,W,44);
+    g.fillStyle=C.accent; g.fillRect(0,H-44,W,3);
+    g.font='600 13px '+TX; g.fillStyle=C.dim;
+    g.fillText(new Date().toLocaleDateString(),42,H-16);
+    g.textAlign='right'; g.font='700 13px '+DF; g.fillStyle=C.accent;
+    g.fillText('PLAYABLES \u00b7 '+C.title,W-42,H-16);
+    g.textAlign='left';
+
+    c.toBlob(function(b){
+      if(!b)return;
+      var u=URL.createObjectURL(b),a=document.createElement('a');
+      a.href=u; a.download=C.file+'-card.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(u);},2000);
+    },'image/png');
+  }catch(e){}
+}
+window.__shareCard=shareCard;
+(function(){ var b=document.getElementById('btnShare');
+  if(b)b.addEventListener('click',shareCard); })();
+
 window.__crowd_debug={
   state(){ const cnt=t=>{ let n=0; for(let i=0;i<ents.length;i++)if(ents[i].type===t)n++; return n; };
     return {phase:state.phase,paused:state.paused,frozen:state.frozen,frames:state.frames,
