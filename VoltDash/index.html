@@ -56,6 +56,15 @@
         color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
+     min-content width and rendered one or two words per line down a tall narrow column over the game.
+     Give the text its own full-width line and let the kicker and Skip share the line above. */
+  @media (max-width:560px){
+    #coach{flex-wrap:wrap;row-gap:6px;width:min(94vw,460px);max-width:none}
+    #coach .ck{order:1}
+    #coach .cx{order:2;margin-left:auto}
+    #coach .ct{order:3;flex:1 1 100%;min-width:0}
+  }
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(159,182,214,.32);border-radius:8px;
        padding:3px 9px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
