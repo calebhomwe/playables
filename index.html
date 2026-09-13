@@ -105,6 +105,7 @@
       <span class="chip">zero dependencies</span>
       <span class="chip">keyboard + touch</span>
     </div>
+    <div class="chips"><button class="chip" id="packCard" style="cursor:pointer;font-weight:700">SAVE THE PACK CARD</button></div>
   </header>
 
   <main class="grid" id="grid" aria-label="Game shelf"></main>
@@ -191,6 +192,49 @@ refreshBests();
 document.addEventListener("visibilitychange", function(){ if (!document.hidden) refreshBests(); });
 window.addEventListener("focus", refreshBests);
 window.addEventListener("pageshow", refreshBests);
+/* The pack's own shareable artefact: one card across all six games. Canvas 2D -> toBlob, no library
+   and no network, matching the per-game cards each cabinet now ships. Reads each game's OWN record key. */
+function packCard(){
+  try{
+    var W=880,H=520,c=document.createElement('canvas'); c.width=W; c.height=H;
+    var x=c.getContext('2d');
+    x.fillStyle='#0a0e18'; x.fillRect(0,0,W,H);
+    x.fillStyle='#111726'; x.fillRect(0,0,W,88);
+    x.fillStyle='#ffffff'; x.font='800 26px system-ui,Segoe UI,Arial'; x.fillText('PLAYABLES PACK', 40, 46);
+    x.fillStyle='#7c8aa5'; x.font='600 14px ui-monospace,Consolas,monospace';
+    x.fillText('SIX GAMES - ONE FILE EACH - FULLY OFFLINE', 40, 68);
+    x.fillStyle='#7c8aa5'; x.font='700 13px ui-monospace,Consolas,monospace';
+    x.fillText('BEST SCORES ON THIS MACHINE', 40, 126);
+    var set=0;
+    GAMES.forEach(function(g,i){
+      var y=168+i*52;
+      var b=null;
+      try{ var raw=localStorage.getItem(REC[g.dir]); if(raw){ var r=JSON.parse(raw);
+           b=(r.best!==undefined)?r.best:(r.bestScore!==undefined)?r.bestScore:(r.high!==undefined)?r.high:null; } }catch(e){}
+      if(b!=null) set++;
+      x.fillStyle=g.accent; x.fillRect(40, y-14, 6, 26);
+      x.fillStyle='#e8edf7'; x.font='700 17px system-ui,Segoe UI,Arial';
+      x.fillText(g.title, 60, y+5);
+      x.fillStyle='#5c6a85'; x.font='500 12px ui-monospace,Consolas,monospace';
+      x.fillText(g.genre.toUpperCase(), 300, y+5);
+      x.fillStyle=(b!=null)?'#ffffff':'#3d4761'; x.font='800 24px ui-monospace,Consolas,monospace';
+      x.fillText(b!=null?String(b):'--', W-160, y+7);
+    });
+    x.fillStyle='#7c8aa5'; x.font='600 13px ui-monospace,Consolas,monospace';
+    x.fillText(set+' / '+GAMES.length+' bests set', 40, H-46);
+    x.fillText(new Date().toLocaleDateString(), 40, H-24);
+    x.fillText('PROSTON WORKS - PLAYABLES', W-300, H-24);
+    c.toBlob(function(blob){
+      if(!blob) return;
+      var u=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=u; a.download='playables-pack-card.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(u); }, 2000);
+    }, 'image/png');
+  }catch(e){}
+}
+var _pc=document.getElementById('packCard'); if(_pc) _pc.onclick=packCard;
+
 document.getElementById("stamp").textContent = "v1.0 · " + GAMES.length + " titles";
 </script>
 </body>
