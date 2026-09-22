@@ -509,8 +509,10 @@ function drawSnake(s,isPlayer){
   ctx.beginPath();trace(s,n,st);ctx.strokeStyle='rgba(255,255,255,.2)';
   ctx.lineWidth=Math.max(2,SEG_R*.55);ctx.stroke();
   drawHead(s,isPlayer);
-  if(!isPlayer){ctx.font='700 11px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
-    ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(s.name,s.x,s.y-SEG_R*2.4);}
+  if(!isPlayer){ctx.font='800 12px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
+    ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';ctx.lineWidth=3;
+    ctx.strokeText(s.name,s.x,s.y-SEG_R*2.4);
+    ctx.fillStyle='#fff';ctx.fillText(s.name,s.x,s.y-SEG_R*2.4);}
   ctx.restore();}
 function drawOrb(o){
   const pu=.6+.4*Math.sin(state.time*o.sp+o.ph), size=o.r*(4.6+pu*1.5);

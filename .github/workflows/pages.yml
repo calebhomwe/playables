@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Stage publishable files
+        run: |
+          mkdir -p _site
+          tar --exclude=./_site --exclude=./.git --exclude=./.github -cf - . | tar -xf - -C _site
+          # A Pages URL is public even when the repo is not. Neither of these is
+          # fetched at runtime -- the only mentions are prose ("tools/playtest.py."
+          # in a game's credits blurb, "/proof/" in the hub's text), not href/src.
+          #   */tools/  per-game dev scripts: check.py, offline_check.py, playtest.py
+          #   proof/    644KB of QA screenshots nothing links to
+          # thumbs/ is NOT excluded: the hub builds its cards from
+          # './thumbs/' + g.dir + '.png' at runtime.
+          rm -rf _site/proof
+          find _site -type d -name tools -prune -exec rm -rf {} +
+          echo "--- staged for publication ---"
+          du -sh _site
+          find _site -name '*.py' | head
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
