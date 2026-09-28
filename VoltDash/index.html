@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#04080f" />
 <title>VOLT DASH</title>
@@ -27,33 +28,33 @@
        overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
   .cell{flex:1;padding:4px 8px;border-right:2px solid rgba(159,182,214,.16);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.5rem);letter-spacing:.14em;text-transform:uppercase;
        color:var(--dim);font-weight:700;white-space:nowrap;overflow:hidden}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.82rem,2.6vw,1.12rem);
        line-height:1.15;white-space:nowrap}
   #cells.hot{color:var(--lime)}
   .ebar{display:flex;align-items:center;gap:8px;margin-top:6px;background:var(--glass);
        border:2px solid rgba(159,182,214,.32);border-radius:10px;padding:5px 9px;backdrop-filter:blur(6px)}
-  .elab{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700}
+  .elab{font-size:max(12px,.5rem);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700}
   .etrack{flex:1;height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;
        box-shadow:inset 0 0 0 1px rgba(159,182,214,.22)}
   .efill{height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3df0a0,#a8ff35)}
   .efill.mid{background:linear-gradient(90deg,#ffd24a,#ffb62e)}
   .efill.low{background:linear-gradient(90deg,#ff5fa4,#ff2e8b);animation:pulse .48s steps(2,end) infinite}
   @keyframes pulse{50%{opacity:.5}}
-  .epct{font-family:var(--display);font-size:.68rem;min-width:2.8em;text-align:right;color:var(--paper)}
+  .epct{font-family:var(--display);font-size:max(12px,.68rem);min-width:2.8em;text-align:right;color:var(--paper)}
   /* first-run coach: short, stepped, skippable — shown where each input matters */
   #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
         background:var(--glass,rgba(5,10,22,.84));border:2px solid var(--lime,#a8ff35);border-radius:12px;
         padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:var(--ink,#04080f);background:var(--lime,#a8ff35);border-radius:6px;padding:3px 7px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#eaf6ff);line-height:1.32}
   #coach .ct b{color:var(--lime,#a8ff35)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -67,10 +68,15 @@
   }
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(159,182,214,.32);border-radius:8px;
-       padding:3px 9px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+       padding:3px 9px;font-size:max(12px,.6rem);letter-spacing:.14em;text-transform:uppercase;
        font-weight:700;color:var(--cyan);backdrop-filter:blur(6px);white-space:nowrap;
        font-family:inherit}
-  #sndBtn{pointer-events:auto;cursor:pointer;color:var(--dim)}
+  #sndBtn{pointer-events:auto;cursor:pointer;color:var(--dim);min-height:40px;min-width:96px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--lime);color:var(--ink);border:2px solid #16280a;border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){.efill.low,#coach.on{animation:none}.btn:active{transform:none}}
   #sndBtn.on{color:var(--lime)}
 
   /* screens */
@@ -81,7 +87,7 @@
   .panel{width:min(480px,100%);text-align:center;background:var(--glass);
          border:2px solid rgba(159,182,214,.30);border-radius:16px;padding:20px 18px;
          box-shadow:0 18px 60px rgba(0,0,0,.65);backdrop-filter:blur(10px)}
-  .kicker{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--lime);font-weight:700}
+  .kicker{font-size:max(12px,.58rem);letter-spacing:.3em;text-transform:uppercase;color:var(--lime);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.6vw,3.3rem);line-height:.92;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--paper);
          text-shadow:0 0 24px rgba(37,230,255,.45),0 0 4px rgba(37,230,255,.6),0 3px 0 rgba(0,0,0,.55)}
@@ -104,15 +110,16 @@
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--lime);margin-top:8px;
            font-size:.94rem;letter-spacing:.1em}
-  .hint{font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
+  .hint{font-size:max(12px,.6rem);letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
   .legend{display:flex;gap:9px;justify-content:center;margin:11px 0 4px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.63rem;letter-spacing:.06em;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.63rem);letter-spacing:.06em;
       text-transform:uppercase;color:#c5d4ea;font-weight:700}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div class="rack">
@@ -189,6 +196,16 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let REC=store.get('vd_rec',{games:0,best:0,cells:0,dist:0,dashes:0,hits:0});
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no shake, no white flash */
+const CODES={INFINIVOLT:'Battery never drains and hits cost nothing',SLOWMO:'The grid runs at 60% speed',
+  MAGNET:'Battery cells fly to you from any height'};
+const cheat={INFINIVOLT:false,SLOWMO:false,MAGNET:false};
+const codesOn=()=>!!((SDK&&SDK.cheated)||cheat.INFINIVOLT||cheat.SLOWMO||cheat.MAGNET);
 
 /* palette: acid lime + electric cyan + hot magenta on grid-black. High
    contrast, flat shapes, nothing muddy in the midtones. */
@@ -407,15 +424,17 @@ function resetWorld(){
 function startRun(){
   resetWorld(); state.phase='play'; state.paused=false; coachHide();
   show(null); $('#hud').style.display='flex';
-  AU.init(); AU.go(); hud();
+  AU.init(); AU.go(); hud(); sdkState('play',0);
 }
 function toMenu(){
   resetWorld(); state.phase='menu'; state.paused=false; state.energy=ENERGY_MAX;
-  show('#s-menu'); $('#hud').style.display='none'; updMenuBest();
+  show('#s-menu'); $('#hud').style.display='none'; updMenuBest(); sdkState('title');
 }
 function togglePause(force){
   if(state.phase!=='play')return;
   const want=force===undefined?!state.paused:!!force;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(want)SDK.pause(); else SDK.resume(); return state.paused; }
   state.paused=want;
   if(want){ $('#pauseStats').innerHTML=statsHTML(); show('#s-pause'); AU.ui(); }
   else show(null);
@@ -424,8 +443,9 @@ function togglePause(force){
 function runOver(reason){
   if(state.phase!=='play')return;
   state.phase='over'; state.paused=false; state.dashT=0; state.sliding=false;
-  const sc=scoreNow(), d=Math.floor(state.dist), nb=sc>REC.best&&sc>0;
-  REC.games++; REC.best=Math.max(REC.best,sc); REC.cells+=state.cells;
+  const sc=scoreNow(), d=Math.floor(state.dist), cheated=codesOn(), nb=!cheated&&sc>REC.best&&sc>0;
+  /* a run with codes on never replaces the best score */
+  REC.games++; if(!cheated)REC.best=Math.max(REC.best,sc); REC.cells+=state.cells;
   REC.dist+=d; REC.dashes+=state.dashes; REC.hits+=state.hits;
   store.set('vd_rec',REC);
   AU.over();
@@ -434,9 +454,9 @@ function runOver(reason){
   $('#newbest').style.display=nb?'block':'none';
   $('#overStats').innerHTML=[['Score',sc],['Distance',d+' m'],['Battery cells',state.cells],
     ['Cells missed',state.missed],['Dashes',state.dashes],['Hits taken',state.hits],
-    ['All-time best',REC.best]]
+    ['All-time best',REC.best]].concat(cheated?[['Codes on','Best not saved']]:[])
     .map(r=>'<div class="log"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
-  show('#s-over'); $('#hud').style.display='none'; updMenuBest();
+  show('#s-over'); $('#hud').style.display='none'; updMenuBest(); sdkState('over',sc);
 }
 
 /* ── track dressing: battery cells + the two obstacle kinds ─────────── */
@@ -526,7 +546,7 @@ function collectCell(e){
 function damage(e){
   if(state.hitCd>0||state.dashT>0)return;
   e.done=true; e.hit=true; state.hits++;
-  state.hitCd=DAMAGE_CD; state.energy-=HIT_COST;
+  state.hitCd=DAMAGE_CD; if(!cheat.INFINIVOLT)state.energy-=HIT_COST;
   state.shake=1; state.flash=1; state.sq=.84;
   const x=sx(e.z), y=sy(e.y0+.7);
   sparks(18,x,y,P.magenta,330,.7); sparks(9,x,y,P.paper,240,.5);
@@ -551,6 +571,7 @@ function updFX(dt){
 }
 function update(dt,force){
   if(state.frozen&&!force)return;
+  if(cheat.SLOWMO&&state.phase==='play')dt*=.6;
   state.time+=dt;
   updFX(dt);
   state.shake=Math.max(0,state.shake-dt*3.2);
@@ -597,7 +618,7 @@ function update(dt,force){
     sparks(1,RUN_X+rnd(-24,10),sy(state.py+rnd(.2,1.05)),P.cyan,240,.35);
 
   /* the drain: this is the whole game */
-  state.energy-=drainNow()*dt;
+  if(!cheat.INFINIVOLT)state.energy-=drainNow()*dt;
   if(state.energy<=0){ state.energy=0; runOver('drained'); hud(); return; }
   if(state.energy<ENERGY_MAX*.25){ state.lowT-=dt;
     if(state.lowT<=0){ state.lowT=.5; AU.low(); } }
@@ -612,6 +633,7 @@ function update(dt,force){
     if(e.done)continue;
     if(dx<-1.1){ e.done=true; if(e.type==='cell')state.missed++; else state.cleared++; continue; }
     if(e.type==='cell'){
+      if(cheat.MAGNET&&dx<5)e.y+=(mid-e.y)*Math.min(1,dt*9);   /* MAGNET: cells home in on the body */
       if(Math.abs(dx)<CELL_HALF&&Math.abs(mid-e.y)<CELL_PICK)collectCell(e);
     } else {
       const hw=(e.type==='spike')?SPIKE_HW:BEAM_HW;
@@ -1062,7 +1084,7 @@ function render(){
   const sky=skyNow();
   state.frames++;
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  const sh=state.shake*state.shake;
+  const sh=calm()?0:state.shake*state.shake;
   const ox=(Math.random()-.5)*sh*24, oy=(Math.random()-.5)*sh*24;
   ctx.save(); ctx.translate(ox,oy);
   drawSky(sky); drawStars(sky); drawSkyline(sky); drawPylons(sky); drawMidwall(sky);
@@ -1072,7 +1094,7 @@ function render(){
   drawTrail();
   drawSpeedLines();
   drawFX();
-  if(state.flash>0){ ctx.fillStyle=withA('#ffffff',Math.min(.42,state.flash*.36));
+  if(state.flash>0&&!calm()){ ctx.fillStyle=withA('#ffffff',Math.min(.42,state.flash*.36));
     ctx.fillRect(-80,-80,W+160,H+160); }
   ctx.restore();
   drawVignette(); drawScan();
@@ -1117,6 +1139,7 @@ addEventListener('keyup',e=>{
   if(k==='ArrowDown'||k==='s'||k==='S')setHold(false);
 });
 document.addEventListener('visibilitychange',()=>{
+  if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true);
 });
 $('#play').onclick=()=>{ AU.init(); startRun(); };
@@ -1264,6 +1287,29 @@ window.__volt_debug={
     while(t>1e-4&&guard++<4000&&state.phase==='play'){ update(Math.min(st,t),true); t-=st; }
     render(); return this.state(); }
 };
+
+/* ── arcade hookup ──────────────────────────────────────────────────── */
+function hintNow(){
+  if(state.phase!=='play')return 'Tap anywhere (or press Space) to plug in. Hop spikes, slide under conduits, grab cells.';
+  const next=ents.filter(e=>!e.done&&e.type!=='cell'&&e.z>state.dist).sort((a,b)=>a.z-b.z)[0];
+  if(state.energy<30)return 'Energy is low: chase the green cells and do not dash, it costs 22 volts.';
+  if(next&&next.z-state.dist<8)return next.type==='spike'?'Zapper spike ahead: tap or Space to hop it.':'Conduit ahead: swipe down or hold Down to slide under it.';
+  return 'Each cell is +12 volts. Dash (Shift or swipe right) smashes through a hit, but only with 22+ volts spare.';
+}
+function replayTutorial(){ hintStep=0; store.set('vd_hint',0); startRun(); }
+function applyCode(code){
+  code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return {ok:false};
+  cheat[code]=true; $('#codesOn').hidden=false;
+  if(code==='INFINIVOLT'){ state.energy=ENERGY_MAX; hud(); }
+  return {ok:true,message:CODES[code]};
+}
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startRun(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
 
 /* ── boot ───────────────────────────────────────────────────────────── */
 resize(); updSnd(); toMenu(); requestAnimationFrame(tick);

@@ -23,6 +23,8 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8154
 URL = f"http://localhost:{PORT}/index.html"
@@ -217,8 +219,9 @@ def main():
             pg.wait_for_timeout(180)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
             check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+                "()=>document.getElementById('s-pause').classList.contains('on')"
+                "||!!document.querySelector('#arcade-sdk.on')"))
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(180)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -293,7 +296,8 @@ def main():
                   str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
+            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")
+           and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#151009" />
 <title>BRIDGE RUSH</title>
@@ -29,7 +30,7 @@
        overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
   .cell{flex:1;padding:4px 8px;border-right:2px solid rgba(159,176,194,.16);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.5rem);letter-spacing:.14em;text-transform:uppercase;
        color:var(--dim);font-weight:700;white-space:nowrap;overflow:hidden}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.82rem,2.6vw,1.12rem);
        line-height:1.15;white-space:nowrap}
@@ -37,13 +38,13 @@
   @keyframes pop{0%{transform:scale(1.35);color:var(--hivis)}100%{transform:scale(1)}}
   .bar{display:flex;align-items:center;gap:8px;margin-top:6px;background:var(--glass);
        border:2px solid rgba(159,176,194,.32);border-radius:10px;padding:5px 9px;backdrop-filter:blur(6px)}
-  .blab{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700;min-width:3.6em}
+  .blab{font-size:max(12px,.5rem);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700;min-width:3.6em}
   .btrack{flex:1;height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;
        box-shadow:inset 0 0 0 1px rgba(159,176,194,.22)}
   .bfill{height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#ff9a2e,var(--hivis))}
   .bfill.low{background:linear-gradient(90deg,#ff5a2a,#ff9a2e);animation:pulse .5s steps(2,end) infinite}
   @keyframes pulse{50%{opacity:.45}}
-  .bval{font-family:var(--display);font-size:.68rem;min-width:3.2em;text-align:right;color:var(--paper)}
+  .bval{font-family:var(--display);font-size:max(12px,.68rem);min-width:3.2em;text-align:right;color:var(--paper)}
   /* rival race bar: a twin marker that shows the parallel builder's progress */
   .rtrack{position:relative;flex:1;height:12px;background:rgba(255,255,255,.07);border-radius:6px;
        overflow:hidden;box-shadow:inset 0 0 0 1px rgba(159,176,194,.22)}
@@ -54,7 +55,7 @@
        border:1.5px solid var(--woodL);transform:translateX(-50%);transition:left .1s linear}
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(159,176,194,.32);border-radius:8px;
-       padding:3px 9px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+       padding:3px 9px;font-size:max(12px,.6rem);letter-spacing:.14em;text-transform:uppercase;
        font-weight:700;color:var(--hivis);backdrop-filter:blur(6px);white-space:nowrap;font-family:inherit}
   #sndBtn{pointer-events:auto;cursor:pointer;color:var(--dim)}
   #sndBtn.on{color:var(--hivis)}
@@ -67,7 +68,7 @@
   .panel{width:min(480px,100%);text-align:center;background:var(--glass);
          border:2px solid rgba(159,176,194,.30);border-radius:16px;padding:20px 18px;
          box-shadow:0 18px 60px rgba(0,0,0,.65);backdrop-filter:blur(10px)}
-  .kicker{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--hivis);font-weight:700}
+  .kicker{font-size:max(12px,.58rem);letter-spacing:.3em;text-transform:uppercase;color:var(--hivis);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.6vw,3.3rem);line-height:.92;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--paper);
          text-shadow:0 3px 0 rgba(0,0,0,.55),0 0 26px rgba(197,138,74,.4)}
@@ -90,19 +91,19 @@
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--hivis);margin-top:8px;
            font-size:.94rem;letter-spacing:.1em}
-  .hint{font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
+  .hint{font-size:max(12px,.6rem);letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
   /* first-run coach: one core input, shown where it first matters, skippable */
   #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,440px);
         background:var(--glass,rgba(21,16,9,.82));border:2px solid var(--hivis,#ffd21e);border-radius:12px;
         padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:var(--ink,#151009);background:var(--hivis,#ffd21e);border-radius:6px;padding:3px 7px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#fff);line-height:1.32}
   #coach .ct b{color:var(--hivis,#ffd21e)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#b6a891);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#b6a891);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -115,13 +116,21 @@
     #coach .ct{order:3;flex:1 1 100%;min-width:0}
   }
   .legend{display:flex;gap:9px;justify-content:center;margin:11px 0 4px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.63rem;letter-spacing:.06em;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.63rem);letter-spacing:.06em;
       text-transform:uppercase;color:#e6d9c2;font-weight:700}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
+  #sndBtn{min-height:40px;min-width:40px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--hivis);color:var(--ink);border:2px solid #3a2f26;border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div class="rack">
@@ -164,6 +173,7 @@
   </div>
   <div class="marks" id="menuBest">Best 0 m</div>
   <button class="btn" id="play">Start the build</button>
+  <button class="btn quiet" id="gfxBtn" type="button">Graphics: High</button>
   <p class="hint">Hold / &#8595; builds &middot; tap or Space hops<br>Esc pauses &middot; M mutes</p>
 </div></div>
 
@@ -202,6 +212,20 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no screen shake, no flashes */
+const CODES={LUMBERYARD:'Planks cost nothing: every gap bridges itself',SLOWRIVAL:'The rival builder works at three-quarter speed',STEELTOES:'Cones cost no material and never trip you'};
+const cheat={}; for(const k in CODES)cheat[k]=false;
+/* Graphics: High renders at the screen's pixel ratio (up to 2x), Low at 1x for slower phones. */
+let GFX_LOW=false; try{ GFX_LOW=localStorage.getItem('br_gfx')==='low'; }catch(e){}
+const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
+function codeOn(code){ code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('br_rec',{games:0,best:0,bestDist:0,material:0,segs:0,finishes:0,wins:0,dist:0});
 
 /* palette: warm site timber + galvanised steel + hi-vis safety yellow, on a
@@ -291,7 +315,7 @@ const AU={ctx:null,on:store.get('br_snd',true),master:null,nb:null,
 const cv=$('#cv'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,U=170,GY=0,RUN_X=0,RY=0;
 function resize(){
-  DPR=Math.min(devicePixelRatio||1,2);
+  DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2);
   W=innerWidth; H=innerHeight;
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -407,8 +431,8 @@ function buildLay(){
   if(state.phase!=='play')return false;
   const g=activeGap();
   if(!g||g.lad>=g.x1-0.001)return false;
-  if(state.material<SEG_COST){ AU.low(); state.flash=Math.max(state.flash,.14); return false; }
-  state.material-=SEG_COST; state.segsLaid++;
+  if(state.material<SEG_COST&&!cheat.LUMBERYARD){ AU.low(); state.flash=Math.max(state.flash,.14); return false; }
+  if(!cheat.LUMBERYARD)state.material-=SEG_COST; state.segsLaid++;
   g.lad=Math.min(g.x1,g.lad+SEG_W);
   state.sq=.86; state.shake=Math.max(state.shake,.12);
   const x=sx(g.lad), y=sy(0);
@@ -528,15 +552,17 @@ function resetWorld(){
 function startRun(){
   resetWorld(); state.phase='play'; state.paused=false;
   show(null); $('#hud').style.display='flex';
-  AU.init(); AU.go(); planAhead(); hud();
+  AU.init(); AU.go(); planAhead(); hud(); sdkState('play',0);
 }
 function toMenu(){
   resetWorld(); state.phase='menu'; state.paused=false;
-  show('#s-menu'); $('#hud').style.display='none'; updMenuBest();
+  show('#s-menu'); $('#hud').style.display='none'; updMenuBest(); sdkState('title');
 }
 function togglePause(force){
   if(state.phase!=='play')return;
   const want=force===undefined?!state.paused:!!force;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(want)SDK.pause(); else SDK.resume(); return state.paused; }
   state.paused=want;
   if(want){ $('#pauseStats').innerHTML=statsHTML(); show('#s-pause'); AU.ui(); }
   else show(null);
@@ -550,8 +576,9 @@ function endRun(finished){
   if(finished) state.place=(rival.finishT==null||state.time<=rival.finishT)?1:2;
   else state.place=0;
   const sc=scoreNow(), d=Math.floor(state.dist);
-  const nb=sc>REC.best&&sc>0;
-  REC.games++; REC.best=Math.max(REC.best,sc); REC.bestDist=Math.max(REC.bestDist,d);
+  const cheated=codesOn(), nb=!cheated&&sc>REC.best&&sc>0;
+  /* a run with codes on never replaces the best score */
+  REC.games++; if(!cheated){ REC.best=Math.max(REC.best,sc); REC.bestDist=Math.max(REC.bestDist,d); }
   REC.material+=state.matCollected; REC.segs+=state.segsLaid; REC.dist+=d;
   if(finished){ REC.finishes++; if(state.place===1)REC.wins++; }
   store.set('br_rec',REC);
@@ -570,8 +597,8 @@ function endRun(finished){
   $('#overTitle').textContent=finished?(state.place===1?'Bridge Complete':'Second Place')
     :(d<80?'Early Bath':d<260?'Run Over':d<460?'Long Fall':'So Close');
   $('#newbest').style.display=nb?'block':'none';
-  $('#overStats').innerHTML=statsHTML();
-  show('#s-over'); $('#hud').style.display='none'; updMenuBest();
+  $('#overStats').innerHTML=statsHTML()+(cheated?'<div class="log"><span>Codes on</span><b>Best not saved</b></div>':'');
+  show('#s-over'); $('#hud').style.display='none'; updMenuBest(); sdkState('over',sc);
 }
 
 /* ── update ─────────────────────────────────────────────────────────── */
@@ -616,7 +643,7 @@ function update(dt,force){
   /* the gap decision: build, teeter, or fall */
   const g=activeGap();
   const atEdge=!!g&&g.lad<g.x1-0.001&&state.dist>=g.lad-0.03;
-  const canLay=state.material>=SEG_COST;
+  const canLay=state.material>=SEG_COST||cheat.LUMBERYARD;
   if(atEdge&&canLay){
     state.autoClock-=dt; state.manClock-=dt;
     if(state.buildHold&&state.manClock<=0){ buildLay(); state.manClock=LAY_CD; }
@@ -640,6 +667,7 @@ function update(dt,force){
   for(let i=cones.length-1;i>=0;i--){ const c=cones[i]; if(c.hit)continue;
     if(c.x<state.dist-1.5){ c.hit=true; continue; }
     if(Math.abs(c.x-state.dist)<CONE_HW+HALF_W&&state.py<CONE_H-0.05){
+      if(cheat.STEELTOES){ c.hit=true; sparks(8,sx(c.x),sy(CONE_H*.6),P.orange,220,.4); continue; }
       c.hit=true; state.conesHit++;
       const cost=Math.min(state.material,coneCost()); state.material-=cost;
       state.stumble=.6; state.shake=Math.max(state.shake,.7); state.sq=.8;
@@ -665,7 +693,7 @@ function fallIntoGap(){
 function updateRival(dt){
   if(rival.finishT!=null){ rival.speed*=0.9; return; }
   /* rubber-band around the player so the race always feels live */
-  let target=speedBase()*1.02+Math.sin(state.time*1.3+rival.seed)*0.6;
+  let target=(speedBase()*1.02+Math.sin(state.time*1.3+rival.seed)*0.6)*(cheat.SLOWRIVAL?.75:1);
   if(rival.dist<state.dist-10)target*=1.14;
   else if(rival.dist>state.dist+10)target*=0.92;
   rival.speed+=(target-rival.speed)*Math.min(1,dt*2);
@@ -926,7 +954,7 @@ function drawVignette(){
 }
 function drawScan(){ ctx.save(); ctx.fillStyle='rgba(20,14,8,.09)';
   for(let y=0;y<H;y+=6)ctx.fillRect(0,y+.5,W,1); ctx.restore(); }
-function render(){
+function render(){ if(calm()){ state.shake=0; state.flash=0; }
   const sky=skyNow(); state.frames++;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const sh=state.shake*state.shake;
@@ -1007,6 +1035,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ const k=e.key;
   if(k==='ArrowDown'||k==='s'||k==='S'||k==='j'||k==='J')setBuild(false); });
 document.addEventListener('visibilitychange',()=>{
+  if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true); });
 $('#play').onclick=()=>{ AU.init(); startRun(); };
 $('#again').onclick=()=>{ AU.init(); startRun(); };
@@ -1163,6 +1192,29 @@ window.__bridge_debug={
     while(t>1e-4&&guard++<4000&&state.phase==='play'){ update(Math.min(st,t),true); t-=st; }
     render(); return this.state(); }
 };
+
+/* ── arcade hookup ── */
+function syncGfx(){ const b=document.getElementById('gfxBtn'); if(b)b.textContent='Graphics: '+(GFX_LOW?'Low':'High'); }
+document.getElementById('gfxBtn').onclick=()=>{ GFX_LOW=!GFX_LOW; try{ localStorage.setItem('br_gfx',GFX_LOW?'low':'high'); }catch(e){} syncGfx(); resize(); AU.ui&&AU.ui(); };
+syncGfx();
+function hintNow(){
+  if(state.phase!=='play')return 'Tap anywhere to start. Hold (or Down) to lay planks over gaps; tap (or Space) hops cones.';
+  const g=activeGap(), gapIn=g?g.x0-state.dist:99;
+  if(g&&gapIn<14&&state.material<Math.ceil((g.x1-g.lad)/SEG_W))return 'Not enough material for the next gap: grab the floating planks before you reach the edge.';
+  if(g&&gapIn<10)return 'Gap ahead: hold (or Down) to lay planks faster than the auto-build.';
+  if(rival.dist>state.dist+4)return 'The rival is ahead: hop cones so you do not stumble, and build fast at each gap.';
+  return 'Keep a few planks spare: every cone you run into knocks material loose.';
+}
+function replayTutorial(){ hintSeen=false; store.set('br_hint',false); startRun(); }
+function applyCode(code){ const c=codeOn(code); if(!c)return {ok:false};
+  if(c==='LUMBERYARD'){ state.material=Math.max(state.material,SEG_COST); hud(); }
+  return {ok:true,message:CODES[c]}; }
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startRun(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
 
 /* ── boot ───────────────────────────────────────────────────────────── */
 resize(); updSnd(); toMenu(); requestAnimationFrame(tick);

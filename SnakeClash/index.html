@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#070c18" />
 <title>SNAKE CLASH</title>
@@ -17,7 +18,7 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--ink);
     font-family:var(--text);overscroll-behavior:none;user-select:none;-webkit-user-select:none}
-  canvas{display:block;position:fixed;inset:0}
+  canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 
   /* HUD: glass rack, glossy .io readout */
   #hud{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));
@@ -27,7 +28,7 @@
         backdrop-filter:blur(10px);box-shadow:0 12px 34px rgba(0,0,0,.45);overflow:hidden}
   .cell{padding:8px 15px;border-right:1px solid var(--line);text-align:center;min-width:72px}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.55rem);letter-spacing:.18em;text-transform:uppercase;
              color:var(--dim);font-weight:700}
   .cell .val{display:block;font-family:var(--display);font-size:1.3rem;line-height:1.18;
              color:var(--ink);text-shadow:0 0 16px rgba(63,240,138,.35)}
@@ -43,12 +44,12 @@
         background:var(--glass,rgba(10,20,38,.84));border:1.5px solid var(--acc,#3ff08a);border-radius:14px;
         padding:9px 12px;box-shadow:0 12px 34px rgba(0,0,0,.55);backdrop-filter:blur(10px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:#04140b;background:var(--acc,#3ff08a);border-radius:7px;padding:3px 8px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#eaf6ff);line-height:1.32}
   #coach .ct b{color:var(--acc,#3ff08a)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#8fa6c4);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#8fa6c4);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -68,7 +69,7 @@
          border-radius:22px;border:1px solid var(--line);backdrop-filter:blur(14px);
          background:linear-gradient(180deg,rgba(14,26,48,.88),rgba(7,13,26,.92));
          box-shadow:0 26px 64px rgba(0,0,0,.6)}
-  .kicker{font-size:.6rem;letter-spacing:.32em;text-transform:uppercase;color:var(--acc2);font-weight:700}
+  .kicker{font-size:max(12px,.6rem);letter-spacing:.32em;text-transform:uppercase;color:var(--acc2);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.6vw,3.5rem);line-height:.95;margin-top:6px;
          text-transform:uppercase;letter-spacing:-.01em;
          background:linear-gradient(180deg,#ffffff,#8df8cf 55%,#25e6c8);
@@ -78,10 +79,10 @@
   .lede{color:#b9cbe4;line-height:1.65;font-size:.9rem}
   .lede b{color:var(--ink)}
   .howto{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;margin:16px 0 2px;text-align:left}
-  .howto span{font-size:.7rem;color:var(--dim);border:1px solid var(--line);border-radius:10px;
+  .howto span{font-size:max(12px,.7rem);color:var(--dim);border:1px solid var(--line);border-radius:10px;
               padding:7px 9px;background:rgba(255,255,255,.03);line-height:1.35}
-  .howto b{color:var(--acc);font-family:var(--display);font-size:.68rem;letter-spacing:.04em}
-  .best{margin-top:14px;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  .howto b{color:var(--acc);font-family:var(--display);font-size:max(12px,.68rem);letter-spacing:.04em}
+  .best{margin-top:14px;font-size:max(12px,.68rem);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
   .best b{font-family:var(--display);font-size:1.5rem;color:var(--gold);margin-left:8px;letter-spacing:0}
   .btn{cursor:pointer;width:100%;margin-top:16px;padding:15px;border:none;border-radius:14px;
        font-family:var(--display);font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
@@ -90,7 +91,7 @@
   .btn:active{transform:translateY(2px)}
   .btn.quiet{background:transparent;color:var(--ink);border:1px solid var(--line);
              box-shadow:none;font-size:.84rem}
-  .hint{font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:12px}
+  .hint{font-size:max(12px,.64rem);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:12px}
   #newbest{display:none;font-family:var(--display);color:var(--gold);margin-top:10px;
            font-size:1rem;letter-spacing:.14em}
   #overStats{margin-top:12px;text-align:left}
@@ -98,10 +99,18 @@
        border-bottom:1px solid var(--line);font-size:.82rem;color:var(--dim)}
   .log b{font-family:var(--display);color:var(--ink)}
   .log:last-child{border-bottom:none}
+  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
+  #sndBtn{min-height:40px;min-width:40px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--acc);color:var(--bg0);border:2px solid var(--bg0);border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div class="rack">
@@ -110,8 +119,7 @@
     <div class="cell"><span class="lab">Rank</span><span class="val" id="rank">#1</span></div>
   </div>
   <div class="ctrls">
-    <button class="ic" id="sndBtn" title="Sound">♪</button>
-    <button class="ic" id="pauseBtn" title="Pause">II</button>
+    <button class="ic" id="sndBtn" title="Sound" aria-label="Sound">♪</button>
   </div>
 </div>
 
@@ -172,6 +180,18 @@ const TAU=Math.PI*2, rnd=(a,b)=>a+Math.random()*(b-a);
 const d2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy;};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no screen shake, no flashes */
+const CODES={FREEBOOST:'Boost burns no length',GROWTH:'Grow by 40 segments right now',GHOSTSKIN:'Slide through rival snakes; only the wall can burst you'};
+const cheat={}; for(const k in CODES)cheat[k]=false;
+const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
+function codeOn(code){ code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('sc_rec',{games:0,best:0,bestScore:0,orbs:0,kills:0});
 
 /* ═══ tuning ═══ */
@@ -458,7 +478,7 @@ function update(dt){
   if(want!==p.boosting){p.boosting=want; if(want)AU.boostOn(); else AU.boostOff();}
   if(p.boosting){state.shake=Math.max(state.shake,.05);
     p.burn+=BURN_RATE*dt;
-    while(p.burn>=1&&p.len>MIN_BOOST_LEN){p.burn-=1;p.len--;}
+    while(p.burn>=1&&p.len>MIN_BOOST_LEN){p.burn-=1;if(!cheat.FREEBOOST)p.len--;}
     p.boostFx=Math.min(1,p.boostFx+dt*4); boostTrail(dt);}
   else p.boostFx=Math.max(0,p.boostFx-dt*3);
   /* ---- everyone moves ---- */
@@ -555,7 +575,7 @@ function drawMinimap(){
   ctx.restore();}
 
 /* ═══ render ═══ */
-function render(){
+function render(){ if(calm()){ state.shake=0; state.flash=0; }
   state.zoom=clamp(Math.min(W,H)/VIEW,.5,1.9);
   const z=state.zoom, cx=camX(), cy=camY();
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -652,20 +672,25 @@ function maybeCoach(){
   else { hintStep=2; store.set('sc_hint',2);
     coachShow('Boost','Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
 function startGame(){AU.init();reset();state.phase='play';coachHide();show(null);
-  $('#hud').style.display='flex';hud();AU.click();}
-function togglePause(){if(state.phase!=='play')return;state.paused=!state.paused;
+  $('#hud').style.display='flex';hud();AU.click();sdkState('play',0);}
+function togglePause(){if(state.phase!=='play')return;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(state.paused)SDK.resume(); else SDK.pause(); return; }
+  state.paused=!state.paused;
   show(state.paused?'#s-pause':null);}
 function toMenu(){state.phase='menu';state.paused=false;reset();show('#s-menu');
-  $('#hud').style.display='none';menuHud();}
+  $('#hud').style.display='none';menuHud();sdkState('title');}
 function kill(reason){
   const p=state.player;
   if(state.phase!=='play'||!p||!p.alive)return;
+  if(cheat.GHOSTSKIN&&reason!=='wall'&&reason!=='debug')return;   /* GHOSTSKIN: rivals cannot burst you */
   p.alive=false;state.crash=reason||'debug';state.phase='over';state.shake=1;
   burst(p,150);AU.burst();AU.over();
-  state.best=Math.max(state.best,p.maxLen);
-  const nb=p.maxLen>REC.best;
-  REC.games++;REC.best=Math.max(REC.best,p.maxLen);
-  REC.bestScore=Math.max(REC.bestScore,score());
+  const cheated=codesOn();   /* a run with codes on never replaces the best */
+  if(!cheated)state.best=Math.max(state.best,p.maxLen);
+  const nb=!cheated&&p.maxLen>REC.best;
+  REC.games++;if(!cheated){REC.best=Math.max(REC.best,p.maxLen);
+  REC.bestScore=Math.max(REC.bestScore,score());}
   REC.orbs+=state.orbsEaten;REC.kills+=state.kills;store.set('sc_rec',REC);
   $('#overKick').textContent=reason==='wall'?'The wall bit back':
     reason==='rival'?'Straight into a rival':'Head-on collision';
@@ -673,9 +698,9 @@ function kill(reason){
   $('#newbest').style.display=nb?'block':'none';
   $('#overStats').innerHTML=[['Length',Math.round(p.maxLen)],['Score',score()],
     ['Orbs eaten',state.orbsEaten],['Rivals burst',state.kills],
-    ['Survived',fmt(state.runTime)],['Best length',REC.best]]
+    ['Survived',fmt(state.runTime)],['Best length',REC.best]].concat(cheated?[['Codes on','Best not saved']]:[])
     .map(r=>'<div class="log"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
-  show('#s-over');$('#hud').style.display='none';}
+  show('#s-over');$('#hud').style.display='none';sdkState('over',score());}
 
 /* ═══ input ═══ */
 function worldPointer(){
@@ -709,13 +734,13 @@ addEventListener('keyup',e=>{
   if(k==='ArrowRight'||k==='d'||k==='D')IN.right=false;
   if(k==='Shift'||k===' ')IN.boost=false;});
 document.addEventListener('visibilitychange',()=>{
+  if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause();});
 $('#play').onclick=()=>startGame();
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
 $('#again').onclick=()=>startGame();
 $('#menu2').onclick=()=>toMenu();
 $('#menu3').onclick=()=>toMenu();
-$('#pauseBtn').onclick=()=>{if(state.phase==='play')togglePause();};
 $('#sndBtn').onclick=()=>{AU.init();AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();AU.click();};
 $('#coachX').onclick=coachHide;
 
@@ -853,12 +878,35 @@ window.__snake_debug={
     state.rivals.push(r);return this.state();},
   kill(reason){kill(reason||'debug');return this.state();}};
 
+/* ── arcade hookup ── */
+function hintNow(){
+  const p=state.player;
+  if(state.phase!=='play'||!p)return 'Tap anywhere to start. Steer with the mouse, a finger or Left / Right.';
+  const edge=Math.min(p.x-WALL,ARENA-WALL-p.x,p.y-WALL,ARENA-WALL-p.y);
+  if(edge<220)return 'The wall is close: turn back toward the middle of the arena.';
+  let near=null,nd=1e9; for(const r of state.rivals){ if(!r.alive)continue; const d=d2(p.x,p.y,r.x,r.y); if(d<nd){nd=d;near=r;} }
+  if(near&&nd<320*320)return near.len<p.len?near.name+' is shorter than you: cut across its head so it runs into your body.':near.name+' is longer than you: stay off its path and never meet it head-on.';
+  if(p.len<30)return 'Grow first: sweep the bright orb clusters before you pick fights.';
+  return 'Boost (Shift or Space) to cut a rival off, but it burns length, so let go once you are ahead.';
+}
+function replayTutorial(){ hintStep=0; store.set('sc_hint',0); startGame(); }
+function applyCode(code){ const c=codeOn(code); if(!c)return {ok:false};
+  const p=state.player;
+  if(c==='GROWTH'&&p&&state.phase==='play'){ p.len=Math.min(MAXSEG-4,p.len+40); p.maxLen=Math.max(p.maxLen,p.len); hud(); }
+  return {ok:true,message:CODES[c]}; }
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startGame(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
+
 /* ═══ boot ═══ */
 addEventListener('resize',resize);
 resize();
 reset();
 show('#s-menu');menuHud();syncSnd();
-$('#hud').style.display='none';
+$('#hud').style.display='none';sdkState('title');
 requestAnimationFrame(tick);
 })();
 </script>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#7fd4ff" />
 <title>CROWD CLASH</title>
@@ -25,7 +26,7 @@
        gap:5px;pointer-events:none;z-index:5}
   #crowdWrap{display:flex;align-items:baseline;gap:9px;background:var(--paper);border:3px solid var(--ink);
        border-radius:16px;padding:1px 16px 3px;box-shadow:0 5px 0 rgba(42,27,61,.30)}
-  #crowdWrap .clab{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+  #crowdWrap .clab{font-size:max(12px,.5rem);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--muted)}
   #crowdCount{font-family:var(--display);font-size:clamp(1.75rem,6.4vw,2.9rem);line-height:1.05;
        letter-spacing:-.02em;color:var(--ink);transition:transform .09s ease-out,color .12s}
   #crowdCount.up{transform:scale(1.18);color:var(--good)}
@@ -34,12 +35,12 @@
        overflow:hidden;box-shadow:0 5px 0 rgba(42,27,61,.30);max-width:100%}
   .cell{padding:2px 10px;border-right:3px solid var(--ink);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.46rem;letter-spacing:.13em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.46rem);letter-spacing:.13em;text-transform:uppercase;
        color:var(--muted);font-weight:800;white-space:nowrap}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.76rem,2.5vw,1.02rem);
        line-height:1.3;white-space:nowrap}
   #bossChip{display:none;background:var(--bad);color:#fff;border:3px solid var(--ink);border-radius:999px;
-       padding:2px 13px;font-family:var(--display);font-size:.68rem;letter-spacing:.06em;
+       padding:2px 13px;font-family:var(--display);font-size:max(12px,.68rem);letter-spacing:.06em;
        box-shadow:0 4px 0 rgba(42,27,61,.3);animation:bob .72s ease-in-out infinite}
   @keyframes bob{50%{transform:translateY(-3px)}}
   #sndBtn{pointer-events:auto;cursor:pointer;background:none;border:none;color:var(--muted)}
@@ -50,12 +51,12 @@
         background:var(--paper,#fffaf0);border:3px solid var(--ink,#2a1b3d);border-radius:14px;
         padding:8px 11px;box-shadow:0 7px 0 rgba(42,27,61,.3)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.13em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.13em;text-transform:uppercase;
         color:#fff;background:var(--good,#1fc47f);border-radius:8px;padding:3px 8px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#2a1b3d);line-height:1.32}
   #coach .ct b{color:var(--bad,#f0454f)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(42,27,61,.12);
-        color:var(--muted,#8b7aa8);border-radius:8px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--muted,#8b7aa8);border-radius:8px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit;font-weight:800}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -76,7 +77,7 @@
   .panel{width:min(520px,100%);text-align:center;background:var(--cream);
          border:4px solid var(--ink);border-radius:24px;padding:18px 18px 20px;
          box-shadow:0 12px 0 rgba(42,27,61,.34)}
-  .kicker{font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:var(--coral);font-weight:800}
+  .kicker{font-size:max(12px,.56rem);letter-spacing:.3em;text-transform:uppercase;color:var(--coral);font-weight:800}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.4vw,3.3rem);line-height:.9;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--ink);
          text-shadow:3px 3px 0 var(--sun),6px 6px 0 rgba(42,27,61,.18)}
@@ -85,12 +86,12 @@
   .lede{color:#5b4b78;margin-top:6px;line-height:1.52;font-size:.84rem;max-width:32em;margin-inline:auto}
   .lede b{color:var(--ink)}
   .legend{display:flex;gap:8px;justify-content:center;margin:11px 0 3px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.6rem;letter-spacing:.04em;font-weight:800;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.6rem);letter-spacing:.04em;font-weight:800;
       text-transform:uppercase;color:#5b4b78;border:2px solid var(--ink);border-radius:999px;
       padding:3px 9px;background:var(--paper)}
   .dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid rgba(42,27,61,.5)}
   .how{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:11px}
-  .hw{display:flex;align-items:center;gap:6px;font-size:.58rem;letter-spacing:.04em;font-weight:800;
+  .hw{display:flex;align-items:center;gap:6px;font-size:max(12px,.58rem);letter-spacing:.04em;font-weight:800;
       text-transform:uppercase;color:#5b4b78;background:var(--paper);border:2px solid var(--ink);
       border-radius:10px;padding:4px 8px}
   .hw i{font-family:var(--display);font-style:normal;color:var(--ink)}
@@ -107,11 +108,19 @@
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--good);margin-top:7px;
            font-size:.92rem;letter-spacing:.08em}
-  .hint{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.7}
+  .hint{font-size:max(12px,.58rem);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.7}
+  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
+  #sndBtn{min-height:40px;min-width:40px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--good);color:#fff;border:2px solid var(--ink);border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div id="crowdWrap"><span class="clab">Crowd</span><span id="crowdCount">8</span></div>
@@ -149,6 +158,7 @@
   </div>
   <div class="marks" id="menuBest">Best 0</div>
   <button class="btn" id="play">Start the run</button>
+  <button class="btn quiet" id="gfxBtn" type="button">Graphics: High</button>
   <p class="hint">Tap anywhere &middot; Space &mdash; start &amp; restart</p>
 </div></div>
 
@@ -188,6 +198,20 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no screen shake, no flashes */
+const CODES={BIGCROWD:'Your crowd jumps by 40 runners (and every run starts with 48)',IRONWALL:'Maces, bars and gate posts knock nobody out',SLOWMO:'The track runs at 60% speed'};
+const cheat={}; for(const k in CODES)cheat[k]=false;
+/* Graphics: High renders at the screen's pixel ratio (up to 2x), Low at 1x for slower phones. */
+let GFX_LOW=false; try{ GFX_LOW=localStorage.getItem('cc_gfx')==='low'; }catch(e){}
+const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
+function codeOn(code){ code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('cc_rec',{games:0,best:0,crowd:0,dist:0,bursts:0});
 
 /* ── palette: bright, chunky, cheerful — sticker-book, not cyberpunk. ── */
@@ -260,7 +284,7 @@ const AU={ctx:null,on:store.get('cc_snd',true),master:null,nb:null,murmur:null,m
 /* ── CANVAS 2D ── */
 const cv=$('#cv'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,FX=900;
-function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+function resize(){ DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
   cv.width=Math.max(2,Math.floor(W*DPR)); cv.height=Math.max(2,Math.floor(H*DPR));
   FX=Math.max(320,H*1.05); ctx.setTransform(DPR,0,0,DPR,0,0); }
 addEventListener('resize',resize); resize();
@@ -475,7 +499,7 @@ function spawnBoss(){
 function applyGate(g){
   g.done=true; g.flash=1;
   const p=proj(g.z,state.px,1.55);
-  if(Math.abs(state.px)<=POST_HALF){                 /* clipped the centre post */
+  if(Math.abs(state.px)<=POST_HALF&&!cheat.IRONWALL){ /* clipped the centre post */
     const before=state.crowd, after=Math.max(0,before-POST_LOSS);
     state.posts++; state.hudUp=-1;
     knockCrowd(before-after,{dir:state.px>=0?1:-1});
@@ -507,6 +531,7 @@ function applyGate(g){
 /* ── resolving a hazard ── */
 function hitObs(o){
   o.done=true; o.hit=true; o.flash=1;
+  if(cheat.IRONWALL){ const q=proj(o.z,state.px,DUDE_H*.75); ring(q.x,q.y,P.good,12,300); AU.ui(); return; }
   const loss=o.type==='mace'?MACE_LOSS:BAR_LOSS;
   const before=state.crowd, after=Math.max(0,before-loss);
   state.hits++; state.hitCd=HIT_CD; state.hudUp=-1; state.shake=1;
@@ -612,10 +637,10 @@ function startRun(){
   state.hits=0; state.posts=0; state.dodges=0; state.gates=0; state.lost=0; state.gained=0;
   state.burstBonus=0; state.burstCount=0; state.stepT=0; state.hitCd=0; state.deadT=0;
   ents.length=0; parts.length=0; fly.length=0; floats.length=0;
-  resetCrowd(CROWD0);
+  resetCrowd(cheat.BIGCROWD?CROWD0+40:CROWD0);
   show(null); $('#hud').style.display='flex';
   AU.init(); AU.startMurmur(); AU.ui();
-  hud();
+  hud(); sdkState('play',0);
 }
 function toMenu(){
   state.phase='menu'; state.paused=false; state.win=false;
@@ -624,11 +649,13 @@ function toMenu(){
   state.spawner=false; state.hits=0;
   resetCrowd(CROWD0);
   show('#s-menu'); $('#hud').style.display='none';
-  updMenuBest(); AU.stopMurmur();
+  updMenuBest(); AU.stopMurmur(); sdkState('title');
 }
 function togglePause(force){
   const want=force===undefined?!state.paused:!!force;
   if(state.phase!=='play'||want===state.paused)return state.paused;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(want)SDK.pause(); else SDK.resume(); return state.paused; }
   state.paused=want; show(want?'#s-pause':null);
   if(want){ AU.stopMurmur(); $('#pauseStats').innerHTML=statsHTML(); }
   else { AU.init(); AU.startMurmur(); }
@@ -639,9 +666,11 @@ function runOver(reason){
   state.reason=reason;
   state.phase=(reason==='burst')?'win':'over';
   AU.stopMurmur();
-  const sc=scoreNow(), d=Math.floor(state.dist), nb=sc>(REC.best||0);
-  REC.games=(REC.games||0)+1; REC.best=Math.max(REC.best||0,sc);
-  REC.crowd=Math.max(REC.crowd||0,state.peak); REC.dist=Math.max(REC.dist||0,d);
+  const sc=scoreNow(), d=Math.floor(state.dist), cheated=codesOn(), nb=!cheated&&sc>(REC.best||0);
+  /* a run with codes on never replaces the best score */
+  REC.games=(REC.games||0)+1;
+  if(!cheated){ REC.best=Math.max(REC.best||0,sc);
+    REC.crowd=Math.max(REC.crowd||0,state.peak); REC.dist=Math.max(REC.dist||0,d); }
   if(state.win)REC.bursts=(REC.bursts||0)+1;
   store.set('cc_rec',REC);
   const COPY={wiped:['Nobody left','Crowd wiped out'],post:['Straight into the post','Crowd wiped out'],
@@ -653,11 +682,11 @@ function runOver(reason){
   const rows=[['Peak crowd',state.peak],['Crowd left',state.crowd],['Distance',d+' m'],
     ['Gates taken',state.gates],['Knocked out',state.lost],
     state.win?['Boss gate','BURST +'+state.burstBonus]:['Boss gate',BOSS_HP+' needed'],
-    ['Score',sc],['Best',REC.best]];
+    ['Score',sc],['Best',REC.best]].concat(cheated?[['Codes on','Best not saved']]:[]);
   $('#overStats').innerHTML=rows.map(r=>row(r[0],r[1])).join('');
   show('#s-over'); $('#hud').style.display='none';
   if(state.win)AU.win(); else AU.lose();
-  updMenuBest();
+  updMenuBest(); sdkState('over',sc);
   return state.reason;
 }
 
@@ -682,6 +711,7 @@ function murmur(){
 /* ── update ── */
 function update(dt,force){
   if(state.frozen&&!force)return;
+  if(cheat.SLOWMO&&state.phase==='play')dt*=.6;
   state.time+=dt;
   updFX(dt);
   state.shake=Math.max(0,state.shake-dt*2.6);
@@ -1091,7 +1121,7 @@ function drawVignette(){
   g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(42,27,61,.34)');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 }
-function render(){
+function render(){ if(calm()){ state.shake=0; state.flash=0; }
   state.frames++;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const sh=state.shake*state.shake;
@@ -1136,6 +1166,7 @@ addEventListener('pointermove',e=>{ if(!drag||state.phase!=='play'||state.paused
 addEventListener('pointerup',()=>{ drag=null; },{passive:true});
 addEventListener('pointercancel',()=>{ drag=null; });
 document.addEventListener('visibilitychange',()=>{
+  if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true); });
 $('#play').onclick=()=>{ AU.init(); startRun(); };
 $('#again').onclick=()=>{ AU.init(); startRun(); };
@@ -1301,6 +1332,30 @@ window.__crowd_debug={
 };
 
 /* ── boot ── */
+/* ── arcade hookup ── */
+function syncGfx(){ const b=document.getElementById('gfxBtn'); if(b)b.textContent='Graphics: '+(GFX_LOW?'Low':'High'); }
+document.getElementById('gfxBtn').onclick=()=>{ GFX_LOW=!GFX_LOW; try{ localStorage.setItem('cc_gfx',GFX_LOW?'low':'high'); }catch(e){} syncGfx(); resize(); AU.ui&&AU.ui(); };
+syncGfx();
+function hintNow(){
+  if(state.phase!=='play')return 'Tap anywhere to start. Steer left and right into the green gates.';
+  let g=null,o=null; for(const e of ents){ if(e.done||e.z<state.dist)continue;
+    if(e.type==='gate'&&(!g||e.z<g.z))g=e; else if((e.type==='mace'||e.type==='bar')&&(!o||e.z<o.z))o=e; }
+  if(o&&(!g||o.z<g.z)&&o.z-state.dist<30)return 'Hazard ahead: steer to the open side, every hit knocks runners out.';
+  if(g){ const val=s=>applyOp(s.op,s.val,state.crowd), l=val(g.L), r=val(g.R);
+    return 'Next gate: the '+(l>=r?'LEFT':'RIGHT')+' side leaves you with '+Math.max(l,r)+' runners. Keep off the centre post.'; }
+  return 'The boss gate needs '+BOSS_HP+' runners: stack the x2 gates early.';
+}
+function replayTutorial(){ hintSeen=false; store.set('cc_hint',false); startRun(); }
+function applyCode(code){ const c=codeOn(code); if(!c)return {ok:false};
+  if(c==='BIGCROWD'&&state.phase==='play')setCrowd(state.crowd+40,{spawnZ:state.dist+2,spawnX:state.px});
+  return {ok:true,message:CODES[c]}; }
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startRun(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
+
 resize(); updSnd(); toMenu(); requestAnimationFrame(tick);
 })();
 </script>

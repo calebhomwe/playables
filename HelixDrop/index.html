@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0f26" />
 <title>HELIX DROP</title>
@@ -31,7 +32,7 @@
        border-radius:12px;overflow:hidden;box-shadow:0 8px 26px rgba(0,0,0,.5);backdrop-filter:blur(7px)}
   .cell{flex:1;padding:5px 8px;border-right:2px solid rgba(170,184,224,.16);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.5rem);letter-spacing:.14em;text-transform:uppercase;
        color:var(--dim);font-weight:700;white-space:nowrap;overflow:hidden}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.85rem,2.6vw,1.15rem);
        line-height:1.15;white-space:nowrap}
@@ -44,12 +45,12 @@
         background:var(--glass,rgba(9,13,34,.86));border:2px solid var(--mint,#2fe0c8);border-radius:12px;
         padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:var(--ink,#080c1c);background:var(--mint,#2fe0c8);border-radius:6px;padding:3px 7px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#eef2ff);line-height:1.32}
   #coach .ct b{color:var(--mint,#2fe0c8)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#7d89b8);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#7d89b8);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -63,7 +64,7 @@
   }
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(170,184,224,.34);border-radius:9px;
-       padding:3px 10px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+       padding:3px 10px;font-size:max(12px,.6rem);letter-spacing:.14em;text-transform:uppercase;
        font-weight:700;color:var(--mint);backdrop-filter:blur(7px);white-space:nowrap}
 
   /* screens */
@@ -73,7 +74,7 @@
   .screen.on{display:grid}
   .panel{width:min(500px,100%);text-align:center;background:var(--glass);border:2px solid rgba(170,184,224,.3);
          border-radius:18px;padding:22px 20px;box-shadow:0 20px 64px rgba(0,0,0,.62);backdrop-filter:blur(11px)}
-  .kicker{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--mint);font-weight:700}
+  .kicker{font-size:max(12px,.6rem);letter-spacing:.3em;text-transform:uppercase;color:var(--mint);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.2rem,9vw,3.5rem);line-height:.92;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--paper);
          text-shadow:0 0 26px rgba(47,224,200,.4),0 4px 0 rgba(0,0,0,.5)}
@@ -83,11 +84,11 @@
   .lede b{color:var(--paper)}
   .lede i{color:var(--mint);font-style:normal}
   .legend{display:flex;gap:10px;justify-content:center;margin:12px 0 4px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.64rem;letter-spacing:.06em;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.64rem);letter-spacing:.06em;
       text-transform:uppercase;color:#c6d2ee;font-weight:700}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
   .how{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:11px}
-  .hw{display:flex;align-items:center;gap:6px;font-size:.58rem;letter-spacing:.04em;font-weight:800;
+  .hw{display:flex;align-items:center;gap:6px;font-size:max(12px,.58rem);letter-spacing:.04em;font-weight:800;
       text-transform:uppercase;color:#c6d2ee;background:rgba(255,255,255,.07);border:2px solid rgba(170,184,224,.3);
       border-radius:10px;padding:4px 9px}
   .hw i{font-family:var(--display);font-style:normal;color:var(--paper)}
@@ -103,11 +104,19 @@
   .log b{font-family:var(--display);color:var(--paper)}
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--bonus);margin-top:8px;font-size:.95rem;letter-spacing:.1em}
-  .hint{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:12px;line-height:1.7}
+  .hint{font-size:max(12px,.62rem);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:12px;line-height:1.7}
+  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
+  #sndBtn{min-height:40px;min-width:40px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--mint);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div class="rack">
@@ -148,6 +157,7 @@
   </div>
   <div class="marks" id="menuBest">Best depth 0</div>
   <button class="btn" id="play">Start the drop</button>
+  <button class="btn quiet" id="gfxBtn" type="button">Graphics: High</button>
   <p class="hint">Tap anywhere &middot; Space &mdash; start &amp; restart</p>
 </div></div>
 
@@ -187,6 +197,20 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const mod=(n,m)=>((n%m)+m)%m;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no screen shake, no flashes */
+const CODES={SHIELD:'Red rings bounce you instead of ending the run',FEATHER:'The ball falls at 60% gravity',GHOSTBALL:'The ball drops straight through every ring'};
+const cheat={}; for(const k in CODES)cheat[k]=false;
+/* Graphics: High renders at the screen's pixel ratio (up to 2x), Low at 1x for slower phones. */
+let GFX_LOW=false; try{ GFX_LOW=localStorage.getItem('hx_gfx')==='low'; }catch(e){}
+const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
+function codeOn(code){ code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('hx_rec',{games:0,best:0,bonus:0,combo:0});
 
 /* palette: premium high-contrast. deep navy well, light steel tower, saturated
@@ -258,7 +282,7 @@ const START_Y=-190;         // ball spawn height above ring 0
 /* ── canvas ── */
 const cv=$('#cv'), ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,ZOOM=1;
-function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+function resize(){ DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ZOOM=clamp(Math.min(H/(LEVEL_H*3.8), W/(SHAFT_W*1.35)),.5,3.0); }
@@ -318,10 +342,12 @@ function resetRun(seed){ state.seed=seed; state.plats=[];
   focusCam(); seedMotes(); }
 function startRun(){ AU.init(); resetRun(1337);
   state.phase='play'; state.paused=false; state.frozen=false;
-  updSnd(); hud(); show(null); $('#hud').style.display='flex'; AU.ui(); }
+  updSnd(); hud(); show(null); $('#hud').style.display='flex'; AU.ui(); sdkState('play',0); }
 function toMenu(){ state.phase='menu'; state.paused=false; show('#s-menu');
-  $('#hud').style.display='none'; updMenuBest(); }
+  $('#hud').style.display='none'; updMenuBest(); sdkState('title'); }
 function togglePause(on){ if(state.phase!=='play')return;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(on===undefined?!state.paused:!!on)SDK.pause(); else SDK.resume(); return; }
   state.paused=(on===undefined)?!state.paused:!!on;
   if(state.paused){ pauseStats(); show('#s-pause'); } else show(null); }
 function pauseStats(){ $('#pauseStats').innerHTML=[['Depth',state.depth],['Level',tier()],
@@ -329,9 +355,10 @@ function pauseStats(){ $('#pauseStats').innerHTML=[['Depth',state.depth],['Level
   .map(([a,b])=>`<div class="log"><span>${a}</span><b>${b}</b></div>`).join(''); }
 function gameOver(reason){ if(state.phase!=='play')return;
   state.phase='over'; state.paused=false;
-  const nb=state.depth>REC.best&&state.depth>0;
-  REC.games++; REC.best=Math.max(REC.best,state.depth);
-  REC.bonus+=state.bonus; REC.combo=Math.max(REC.combo,state.bestCombo);
+  const cheated=codesOn(), nb=!cheated&&state.depth>REC.best&&state.depth>0;
+  /* a run with codes on never replaces the best depth */
+  REC.games++; if(!cheated){ REC.best=Math.max(REC.best,state.depth); REC.combo=Math.max(REC.combo,state.bestCombo); }
+  REC.bonus+=state.bonus;
   store.set('hx_rec',REC);
   state.flash=1; state.shake=1; AU.death();
   $('#overKick').textContent=reason==='quit'?'Tower held':'Red ring';
@@ -339,9 +366,9 @@ function gameOver(reason){ if(state.phase!=='play')return;
     state.depth<45?'Well runner':'Core breaker';
   $('#newbest').style.display=nb?'block':'none';
   $('#overStats').innerHTML=[['Depth',state.depth],['Level',tier()],['Bonuses',state.bonus],
-    ['Best combo','\u00d7'+state.bestCombo],['All-time best',REC.best]]
+    ['Best combo','\u00d7'+state.bestCombo],['All-time best',REC.best]].concat(cheated?[['Codes on','Best not saved']]:[])
     .map(([a,b])=>`<div class="log"><span>${a}</span><b>${b}</b></div>`).join('');
-  show('#s-over'); $('#hud').style.display='none'; }
+  show('#s-over'); $('#hud').style.display='none'; sdkState('over',state.depth); }
 function hud(){ $('#depth').textContent=state.depth; $('#level').textContent=tier();
   $('#bonus').textContent=state.bonus; $('#best').textContent=Math.max(REC.best,state.depth);
   $('#secChip').textContent=sectorName();
@@ -415,12 +442,12 @@ function update(dt){
   }
 
   const i=state.ring, topY=i*LEVEL_H;
-  const g=GRAVITY*Math.min(2.3,1+state.depth*.02);
+  const g=GRAVITY*Math.min(2.3,1+state.depth*.02)*(cheat.FEATHER?.6:1);
   ball.vy=Math.min(MAX_FALL,ball.vy+g*dt); ball.y+=ball.vy*dt;
 
   if(ball.y+BALL_R>=topY){
     const cell=cellAtX(i,ball.x);
-    if(cell==='G'){
+    if(cell==='G'||cheat.GHOSTBALL){
       state.ring=i+1;
       if(state.ring>state.depth){ state.depth=state.ring; onDepth(state.depth); }
       state.combo++; state.bestCombo=Math.max(state.bestCombo,state.combo);
@@ -428,7 +455,7 @@ function update(dt){
     } else {
       ball.y=topY-BALL_R;
       if(ball.vy>0){
-        if(cell==='D'){ onDeath(); return; }
+        if(cell==='D'&&!cheat.SHIELD){ onDeath(); return; }
         ball.vy=-BOUNCE_V; ball.squash=1;
         if(cell==='B') onBonus(i);
         else { if(state.combo>2) floatAt(ball.x,ball.y-40,'COMBO \u00d7'+state.combo,P.dim);
@@ -552,7 +579,7 @@ function drawVignette(){ const g=ctx.createRadialGradient(W*.5,H*.48,Math.min(W,
     W*.5,H*.5,Math.max(W,H)*.8);
   g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(4,6,16,.5)');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
-function render(){ state.frames++;
+function render(){ if(calm()){ state.shake=0; state.flash=0; } state.frames++;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   const sh=state.shake*state.shake;
   const ox=(Math.random()-.5)*sh*30, oy=(Math.random()-.5)*sh*26;
@@ -601,7 +628,7 @@ $('#menu2').addEventListener('click',()=>{ toMenu(); });
 $('#sndBtn').addEventListener('click',toggleSound);
 $('#coachX').addEventListener('click',coachHide);
 
-document.addEventListener('visibilitychange',()=>{ if(document.hidden&&state.phase==='play'&&!state.paused) togglePause(true); });
+document.addEventListener('visibilitychange',()=>{ if(SDK)return; /* the SDK pauses on a hidden tab */ if(document.hidden&&state.phase==='play'&&!state.paused) togglePause(true); });
 
 /* ── main loop: rAF, slow-mo cap, hard dt clamp ── */
 let last=0;
@@ -769,6 +796,28 @@ window.__helix_debug={
     render(); return this.state(); },
   render(){ render(); return this.state(); }
 };
+
+/* ── arcade hookup ── */
+function syncGfx(){ const b=document.getElementById('gfxBtn'); if(b)b.textContent='Graphics: '+(GFX_LOW?'Low':'High'); }
+document.getElementById('gfxBtn').onclick=()=>{ GFX_LOW=!GFX_LOW; try{ localStorage.setItem('hx_gfx',GFX_LOW?'low':'high'); }catch(e){} syncGfx(); resize(); AU.ui&&AU.ui(); };
+syncGfx();
+function hintNow(){
+  if(state.phase!=='play')return 'Tap Start the drop, then drag (or hold Left / Right) to spin the tower.';
+  const pat=patOf(state.ring), base=Math.floor(ballU(ball.x)); let best=null;
+  for(let c=0;c<SEG_COUNT;c++)if(pat[c]==='G'){ let d=mod(base-c-state.rot,SEG_COUNT); if(d>SEG_COUNT/2)d-=SEG_COUNT;
+    if(best===null||Math.abs(d)<Math.abs(best))best=d; }
+  if(best===null)return 'No gap on this ring: bounce on a safe block and wait for the next one.';
+  if(Math.abs(best)<.5)return 'The gap is right under the ball: let it drop.';
+  return 'Nearest gap: spin '+(best>0?'RIGHT':'LEFT')+' about '+Math.round(Math.abs(best))+' block'+(Math.abs(best)>=1.5?'s':'')+'. Never land on red.';
+}
+function replayTutorial(){ hintSeen=false; store.set('hx_hint',false); startRun(); }
+function applyCode(code){ const c=codeOn(code); if(!c)return {ok:false}; return {ok:true,message:CODES[c]}; }
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startRun(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
 
 /* ── boot ── */
 resize();

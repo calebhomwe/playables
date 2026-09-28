@@ -12,6 +12,8 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 with sync_playwright() as p:
@@ -38,7 +40,7 @@ if not menu:
     fails.append("menu never appeared under file://")
 if phase != "play":
     fails.append(f"could not start a run under file:// (phase={phase!r})")
-bad = [u for u in requests if not u.startswith("file:")]
+bad = [u for u in requests if not u.startswith("file:") and not u.startswith(ARCADE)]
 if bad:
     fails.append(f"{len(bad)} non-file:// requests: {bad[:3]}")
 

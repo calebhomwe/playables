@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#070a1c" />
 <title>RUNG RUNNER</title>
@@ -26,14 +27,14 @@
        border-radius:10px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px)}
   .cell{flex:1;padding:5px 8px;border-right:2px solid rgba(183,200,230,.18);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.5rem);letter-spacing:.14em;text-transform:uppercase;
        color:var(--dim);font-weight:700;white-space:nowrap;overflow:hidden}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.85rem,2.6vw,1.15rem);
        line-height:1.15;white-space:nowrap}
   #stack.hot{color:var(--gold)}
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(183,200,230,.35);border-radius:8px;
-       padding:3px 9px;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+       padding:3px 9px;font-size:max(12px,.6rem);letter-spacing:.16em;text-transform:uppercase;
        font-weight:700;color:var(--cyan);backdrop-filter:blur(6px);white-space:nowrap}
   #sndBtn{pointer-events:auto;cursor:pointer;font-family:inherit;color:var(--dim)}
   #sndBtn.on{color:var(--gold)}
@@ -44,12 +45,12 @@
         background:var(--glass,rgba(6,9,26,.84));border:2px solid var(--gold,#ffc63f);border-radius:12px;
         padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:var(--ink,#05071a);background:var(--gold,#ffc63f);border-radius:6px;padding:3px 7px;white-space:nowrap}
   #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#f2f7ff);line-height:1.32}
   #coach .ct b{color:var(--gold,#ffc63f)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#8c99c4);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#8c99c4);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -69,7 +70,7 @@
   .screen.on{display:grid}
   .panel{width:min(470px,100%);text-align:center;background:var(--glass);border:2px solid rgba(183,200,230,.32);
          border-radius:16px;padding:22px 20px;box-shadow:0 18px 60px rgba(0,0,0,.6);backdrop-filter:blur(10px)}
-  .kicker{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  .kicker{font-size:max(12px,.6rem);letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2rem,8.4vw,3.2rem);line-height:.94;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--paper);
          text-shadow:0 0 22px rgba(53,224,208,.35),0 3px 0 rgba(0,0,0,.5)}
@@ -90,15 +91,23 @@
   .log b{font-family:var(--display);color:var(--paper)}
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--gold);margin-top:8px;font-size:.95rem;letter-spacing:.1em}
-  .hint{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:12px;line-height:1.7}
+  .hint{font-size:max(12px,.62rem);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:12px;line-height:1.7}
   .legend{display:flex;gap:10px;justify-content:center;margin:12px 0 4px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.66rem;letter-spacing:.08em;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.66rem);letter-spacing:.08em;
       text-transform:uppercase;color:#c8d4ee;font-weight:700}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
+  #sndBtn{min-height:40px;min-width:40px}
+  #coach .cx{min-height:40px;min-width:48px}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
+       background:var(--gold);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>Codes on</div>
 
 <div id="hud">
   <div class="rack">
@@ -109,7 +118,6 @@
   </div>
   <div class="sub">
     <span class="chip" id="zoneName">Zone 1 · Daylight</span>
-    <button class="chip" id="pauseBtn" type="button" aria-label="Pause">⏸ Pause</button>
     <button class="chip" id="sndBtn" type="button">Sound On</button>
   </div>
 </div>
@@ -132,6 +140,7 @@
   </div>
   <div class="marks" id="menuBest">Best 0</div>
   <button class="btn" id="play">Start the climb</button>
+  <button class="btn quiet" id="gfxBtn" type="button">Graphics: High</button>
   <p class="hint">← → or A / D steer · tap left/right half or swipe on touch<br>Space, Esc, or the ⏸ button pauses · M mutes</p>
 </div></div>
 
@@ -169,6 +178,20 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ── Caleb's Arcade SDK glue: pause menu, scenes, codes. Every call is guarded, so the game
+   still runs on its own if the SDK script cannot load (then its own pause screen is used). */
+const SDK=window.ArcadeSDK||null;
+const sdkState=(scene,score)=>{ try{ SDK&&SDK.state(score==null?{scene}:{scene,score}); }catch(e){} };
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;
+const calm=()=>!!(RMQ&&RMQ.matches);          /* reduced motion: no screen shake, no flashes */
+const CODES={BIGSTACK:'20 rungs in hand now, and every run starts with 20',SAWPROOF:'Saw blades pass straight through you',SLOWMO:'The road runs at 60% speed'};
+const cheat={}; for(const k in CODES)cheat[k]=false;
+/* Graphics: High renders at the screen's pixel ratio (up to 2x), Low at 1x for slower phones. */
+let GFX_LOW=false; try{ GFX_LOW=localStorage.getItem('rr_gfx')==='low'; }catch(e){}
+const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
+function codeOn(code){ code=String(code||'').trim().toUpperCase();
+  if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('rr_rec',{games:0,best:0,rungs:0,walls:0,dist:0,stack:0});
 
 /* palette: lacquered candy on deep space, high contrast, no muddy midtones */
@@ -260,7 +283,7 @@ const cv=$('#cv'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,f=560,HY=230;
 const LANE=1.14, LANE_HALF=LANE/2, ROAD_HALF=2.02, CAM_H=1.85, CAM_BACK=6.0;
 function resize(){
-  DPR=Math.min(devicePixelRatio||1,2);
+  DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2);
   W=innerWidth; H=innerHeight;
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -443,32 +466,36 @@ function resetWorld(){
 }
 function startRun(){
   resetWorld(); state.phase='play'; state.paused=false;
+  if(cheat.BIGSTACK){ state.stack=20; state.topStack=20; }
   show(null); $('#hud').style.display='flex';
-  AU.init(); AU.go(); hud();
+  AU.init(); AU.go(); hud(); sdkState('play',0);
 }
 function toMenu(){
   resetWorld(); state.phase='menu'; state.paused=false;
   state.nextWallZ=99999; state.nextZ=22;
-  show('#s-menu'); $('#hud').style.display='none'; updMenuBest();
+  show('#s-menu'); $('#hud').style.display='none'; updMenuBest(); sdkState('title');
 }
 function togglePause(force){
   if(state.phase!=='play')return;
   const want=force===undefined?!state.paused:!!force;
+  /* with the arcade SDK its pause menu is the only one: it freezes frames, timers and audio */
+  if(SDK){ if(want)SDK.pause(); else SDK.resume(); return; }
   state.paused=want;
   if(want){ $('#pauseStats').innerHTML=statsHTML(); show('#s-pause'); AU.ui(); }
   else show(null);
 }
 function gameOver(){
-  const score=scoreNow(), nb=score>REC.best;
-  REC.games++; REC.best=Math.max(REC.best,score); REC.rungs+=state.collected;
+  const score=scoreNow(), cheated=codesOn(), nb=!cheated&&score>REC.best;
+  /* a run with codes on never replaces the best score */
+  REC.games++; if(!cheated)REC.best=Math.max(REC.best,score); REC.rungs+=state.collected;
   REC.walls+=state.wallsCleared; REC.dist+=Math.floor(state.dist);
-  REC.stack=Math.max(REC.stack||0,state.topStack);
+  if(!cheated)REC.stack=Math.max(REC.stack||0,state.topStack);
   store.set('rr_rec',REC);
   $('#overKick').textContent=CRASH_KEYS[state.crash]||'The road wins';
   $('#overTitle').textContent=score<160?'Wiped Out':score<420?'Run Over':score<900?'High Climber':'Moonbound';
   $('#newbest').style.display=nb?'block':'none';
-  $('#overStats').innerHTML=statsHTML();
-  show('#s-over'); $('#hud').style.display='none'; updMenuBest();
+  $('#overStats').innerHTML=statsHTML()+(cheated?'<div class="log"><span>Codes on</span><b>Best not saved</b></div>':'');
+  show('#s-over'); $('#hud').style.display='none'; updMenuBest(); sdkState('over',score);
 }
 
 /* ── juice ──────────────────────────────────────────────────────────── */
@@ -550,13 +577,14 @@ function processCrossings(){
     } else if(e.type==='wall'){
       if(state.stack>=e.h)clearWall(e); else { crash('wall',e); return; }
     } else if(e.type==='saw'){
-      if(Math.abs(player.x-ex)<.66){ crash('saw',e); return; }
+      if(Math.abs(player.x-ex)<.66&&!cheat.SAWPROOF){ crash('saw',e); return; }
     }
   }
 }
 
 /* ── update ─────────────────────────────────────────────────────────── */
 function update(dt){
+  if(cheat.SLOWMO&&state.phase==='play')dt*=.6;
   if(state.paused){ state.shake=Math.max(0,state.shake-dt*3); state.flash=Math.max(0,state.flash-dt*3); return; }
   state.time+=dt;
   state.shake=Math.max(0,state.shake-dt*2.6);
@@ -850,7 +878,7 @@ function drawVignette(){
   g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.45)');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 }
-function render(){
+function render(){ if(calm()){ state.shake=0; state.flash=0; }
   const sky=skyNow();
   const sh=state.shake*state.shake;
   const ox=(Math.random()-.5)*sh*24, oy=(Math.random()-.5)*sh*24;
@@ -955,6 +983,7 @@ addEventListener('keydown',e=>{
   if(k==='m'||k==='M'){ AU.init(); AU.on=!AU.on; store.set('rr_snd',AU.on); updSnd(); }
 });
 document.addEventListener('visibilitychange',()=>{
+  if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true);
 });
 $('#play').onclick=()=>{ AU.init(); startRun(); };
@@ -963,7 +992,6 @@ $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); state.paused=false; crash('wall',null); };
 $('#sndBtn').onclick=()=>{ AU.init(); AU.on=!AU.on; store.set('rr_snd',AU.on); updSnd(); AU.ui(); };
-$('#pauseBtn').onclick=()=>{ AU.ui(); if(state.phase==='play')togglePause(); };
 $('#coachX').onclick=coachHide;
 addEventListener('resize',resize);
 addEventListener('orientationchange',()=>setTimeout(resize,120));
@@ -1100,6 +1128,31 @@ window.__rung_debug={
     while(t>1e-4&&guard++<3000&&state.phase!=='over'){ update(Math.min(st,t)); t-=st; }
     render(); return this.state(); }
 };
+
+/* ── arcade hookup ── */
+function syncGfx(){ const b=document.getElementById('gfxBtn'); if(b)b.textContent='Graphics: '+(GFX_LOW?'Low':'High'); }
+document.getElementById('gfxBtn').onclick=()=>{ GFX_LOW=!GFX_LOW; try{ localStorage.setItem('rr_gfx',GFX_LOW?'low':'high'); }catch(e){} syncGfx(); resize(); AU.ui&&AU.ui(); };
+syncGfx();
+function hintNow(){
+  if(state.phase!=='play')return 'Tap anywhere to start. Tap left or right (or the arrow keys) to change lanes.';
+  let w=null,s=null; for(const e of ents){ if(e.done||e.z<state.dist)continue;
+    if(e.type==='wall'&&(!w||e.z<w.z))w=e; if(e.type==='saw'&&(!s||e.z<s.z))s=e; }
+  const L=['left','middle','right'];
+  if(s&&s.z-state.dist<18&&s.lane===player.lane)return 'Saw blade in your lane: move '+(player.lane===0?'right':player.lane===2?'left':'left or right')+' now.';
+  if(w&&state.stack<w.h)return 'The next wall needs '+w.h+' rungs and you hold '+state.stack+': grab '+(w.h-state.stack)+' more before it.';
+  if(w)return 'You have enough rungs for the next wall ('+w.h+'). Keep collecting: walls get taller.';
+  return 'Steer into the gold rungs and stay out of the saw lanes.';
+}
+function replayTutorial(){ hintSeen=false; store.set('rr_hint',false); startRun(); }
+function applyCode(code){ const c=codeOn(code); if(!c)return {ok:false};
+  if(c==='BIGSTACK'&&state.phase==='play'){ state.stack+=20; state.topStack=Math.max(state.topStack,state.stack); hud(); }
+  return {ok:true,message:CODES[c]}; }
+if(SDK){ try{ window.ArcadeSDK.init({
+  pauseKeys:'p+esc', pauseButton:'br',
+  onPause(){ state.paused=true; }, onResume(){ state.paused=false; },
+  onRestart(){ startRun(); }, onExit(){ toMenu(); },
+  onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
+}); }catch(e){} }
 
 /* ── boot ───────────────────────────────────────────────────────────── */
 resize(); updSnd(); toMenu();

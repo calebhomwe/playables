@@ -13,6 +13,8 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 with sync_playwright() as p:
@@ -38,7 +40,8 @@ with sync_playwright() as p:
 
 fails = []
 ext = [u for u in requests
-       if (u.startswith("http://") or u.startswith("https://"))]
+       if (u.startswith("http://") or u.startswith("https://"))
+       and not u.startswith(ARCADE)]
 if errors:
     fails.append(f"{len(errors)} console errors: {errors[:3]}")
 if not hooked:
