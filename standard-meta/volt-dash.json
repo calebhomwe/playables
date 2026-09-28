@@ -1,0 +1,39 @@
+{
+  "howto": [
+    "Tap Play, then read the one-card tutorial on your first run.",
+    "Tap or press Space to hop spikes, and hold Down or swipe down to slide under conduits.",
+    "Press Shift or swipe right to dash, then tap restart on the results screen for another run."
+  ],
+  "tips": [
+    "Save dashes for stacked hazards or a last-second recovery.",
+    "High cells are easiest to grab right after a hop.",
+    "Watch the sector label: later sectors drain energy faster and throw more hazards."
+  ],
+  "controls": {
+    "keyboard": "Space hops, Down slides, Shift dashes, Esc or P pauses, M mutes.",
+    "touch": "Tap to hop, swipe down to slide, swipe right to dash, tap the top-right pause button for the menu."
+  },
+  "difficulty": "Adaptive ramp: the run starts calm in Sector 1, then energy drain and hazard pressure climb through Sector 5.",
+  "cheats": [
+    {
+      "code": "FULLCHARGE",
+      "effect": "Locks the battery at full charge."
+    },
+    {
+      "code": "SLOMO",
+      "effect": "Slows the run for easier reads."
+    },
+    {
+      "code": "OVERDRIVE",
+      "effect": "Removes dash cooldown and dash charge cost."
+    }
+  ],
+  "features": {
+    "one-tap-start": "Tap Play, then tap the tutorial card button to begin the run.",
+    "instant-restart": "Run again restarts immediately from the results screen without reloading.",
+    "best-score-badge": "Best score stays on the title and results screens, with a new-best banner for clean runs.",
+    "tutorial-card": "A single first-run tutorial card teaches hop, slide, and dash and can be replayed from the menu or arcade pause menu.",
+    "results": "The results screen shows score, best, and a one-tap Run again button."
+  },
+  "pauseButton": "tr"
+}

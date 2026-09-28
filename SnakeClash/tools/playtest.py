@@ -25,6 +25,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8155
 URL = f"http://localhost:{PORT}/index.html"
+SDK = "https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 D = "window.__snake_debug"
@@ -98,6 +99,7 @@ def main():
                   pg.evaluate("()=>localStorage.getItem('sc_rec')") is None)
 
             # ---- boot + menu --------------------------------------------------
+            check("ArcadeSDK loaded", pg.evaluate("()=>!!window.ArcadeSDK"))
             check("debug handle exists", pg.evaluate(f"()=>!!{D}"))
             check("canvas present", pg.evaluate("()=>!!document.querySelector('canvas')"))
             body = pg.evaluate("()=>document.body.innerText")
@@ -111,6 +113,13 @@ def main():
             check("menu shows the best length", "best" in low)
             check("menu is the active screen", pg.evaluate(
                 "()=>document.getElementById('s-menu').classList.contains('on')"))
+            pg.click("#play")
+            pg.wait_for_timeout(180)
+            check("first play opens the tutorial card", pg.evaluate(
+                "()=>document.getElementById('intro').classList.contains('on')"))
+            pg.click("#introPlay")
+            pg.wait_for_timeout(180)
+            check("tutorial card starts the run", pg.evaluate(ST)["phase"] == "play")
             pg.screenshot(path=str(OUT / "01-menu.png"))
 
             # ---- the rAF loop is really rendering ------------------------------
@@ -220,6 +229,16 @@ def main():
                   rec and rec["games"] >= 1 and rec["best"] >= 100,
                   str(rec))
             check("best score is recorded too", rec and rec["bestScore"] >= 100, str(rec))
+            pg.evaluate(stage(head=(ARENA / 2, ARENA / 2), heading=0, length=150))
+            check("GOLIATH code activates", pg.evaluate(
+                "()=>window.ArcadeSDK.tryCode('GOLIATH').ok") is True)
+            check("codes badge is visible", pg.evaluate(
+                "()=>!document.getElementById('codesOn').hidden"))
+            best0 = pg.evaluate("()=>JSON.parse(localStorage.getItem('sc_rec')).best")
+            pg.evaluate(fn(f"return {D}.kill('wall');"))
+            best1 = pg.evaluate("()=>JSON.parse(localStorage.getItem('sc_rec')).best")
+            check("a cheated run does not overwrite the best length",
+                  best1 == best0, f"{best0} -> {best1}")
 
             # ---- restart from the game-over screen ------------------------------
             pg.click("#again")
@@ -278,9 +297,9 @@ def main():
             pg.keyboard.press("Escape")
             pg.wait_for_timeout(200)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
-            check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+            check("SDK pause menu appears", pg.evaluate(
+                "()=>{const el=document.getElementById('arcade-sdk');return !!(el&&el.classList.contains('on'));}"))
+            pg.click("#arcade-sdk button[data-a='resume']")
             pg.wait_for_timeout(200)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -297,12 +316,8 @@ def main():
                            "{value:false,configurable:true});"
                            "document.dispatchEvent(new Event('visibilitychange'));"
                            "return 1;"))
-            pg.wait_for_timeout(160)
-            check("coming back does not un-pause by itself",
-                  pg.evaluate(ST)["paused"] is True)
-            pg.evaluate(fn(D + ".resume();"))
-            pg.wait_for_timeout(120)
-            check("resume continues the run after returning",
+            pg.wait_for_timeout(180)
+            check("coming back resumes a hidden pause",
                   pg.evaluate(ST)["paused"] is False)
 
             # ---- real keyboard steering (no debug pokes) -------------------------
@@ -398,8 +413,8 @@ def main():
                   str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
-            check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
+            bad = [u for u in requests if not (u.startswith(f"http://localhost:{PORT}") or u == SDK)]
+            check(f"no unexpected external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 
             br.close()

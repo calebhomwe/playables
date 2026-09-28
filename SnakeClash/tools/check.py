@@ -18,6 +18,7 @@ NODE = r"C:\Users\caleb\nodejs\node-v24.18.0-win-x64\node.exe"
 path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")
 src = open(path, encoding="utf-8").read()
 fails, warns = [], []
+SDK = "https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"
 
 if not src.lstrip().startswith("<!DOCTYPE"):
     fails.append("does not start with <!DOCTYPE>")
@@ -48,13 +49,19 @@ urls = [m.group(0) for m in re.finditer(r"https?://[^\s\"')<>]+", src)]
 for u in urls:
     if u.startswith("http://www.w3.org/"):
         continue  # SVG namespace identifier, never fetched
+    if u == SDK:
+        continue
     fails.append(f"NETWORK REFERENCE (breaks offline): {u[:80]}")
 for tok in ("cdn.", "unpkg", "jsdelivr", "googleapis", "@import url(",
             "fetch(", "XMLHttpRequest", "new WebSocket", "importScripts"):
     if tok in src:
         fails.append(f"network API / remote asset token: {tok}")
-if re.search(r"<script[^>]+src=", src):
-    fails.append("any <script src= (must be a single inline script)")
+scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)[\"'][^>]*></script>", src, re.I)
+if scripts != [SDK]:
+    fails.append(f"unexpected external scripts: {scripts!r}")
+head = re.search(r"<head>(.*?)</head>", src, re.S | re.I)
+if not head or not re.search(rf"^\s*<meta charset=.*?<script src=[\"']{re.escape(SDK)}[\"']></script>", head.group(1), re.S | re.I):
+    fails.append("Arcade SDK is not the first <script> in <head>")
 if re.search(r"<link[^>]+href=[\"']https?:", src):
     fails.append("remote <link> stylesheet")
 if not re.search(r"<link[^>]+rel=[\"']icon[\"'][^>]+href=[\"']data:", src):
