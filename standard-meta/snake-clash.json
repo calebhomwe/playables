@@ -35,5 +35,5 @@
     "tutorial-card": "A single first-run tutorial card teaches steering, survival, and boosting and can be replayed from the menu or arcade pause menu.",
     "results": "The results screen shows score, best, and a one-tap Play again button."
   },
-  "pauseButton": "tr"
+  "pauseButton": "none"
 }
