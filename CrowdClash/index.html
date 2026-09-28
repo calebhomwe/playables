@@ -487,7 +487,9 @@ function applyGate(g){
     return;
   }
   const side=state.px<0?0:1, sp=side===0?g.L:g.R, good=OPS[sp.op].good;
-  const before=state.crowd, after=applyOp(sp.op,sp.val,before);
+  const before=state.crowd;
+  let after=applyOp(sp.op,sp.val,before);
+  if(!good&&before>0&&after<=0)after=1; /* a single bad gate can't wipe the crowd outright */
   state.gates++; state.bestGate=opText(sp);
   if(after>before)gainCrowd(after-before,{spawnZ:g.z,spawnX:state.px});
   else if(after<before)knockCrowd(before-after,{dir:state.px>=0?1:-1});
