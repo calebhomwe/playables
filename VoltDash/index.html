@@ -205,6 +205,12 @@
 
 <script>
 (()=>{ 'use strict';
+if(!window.ArcadeSDK){
+  let cfg={}, cheated=false;
+  window.ArcadeSDK={__fallback:true,init(o){cfg=Object.assign(cfg,o||{});return this;},
+    state(){},showMenu(){},get cheated(){return cheated;},
+    tryCode(code){const r=cfg.onCheat?cfg.onCheat(code)||{ok:false}:{ok:false};if(r.ok)cheated=true;return r;}};
+}
 /* ═══════════════ VOLT DASH — power-grid energy runner ═══════════════
    Fully offline single file. Canvas 2D, no assets, no network.
    Loop: you auto-run right along a neon power grid. Your battery always
@@ -394,7 +400,7 @@ function beginRun(){
   startRun();
 }
 function openPauseMenu(){
-  if(window.ArcadeSDK){
+  if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){
     try{ArcadeSDK.showMenu();return true;}catch(e){}
   }
   togglePause(true);
@@ -1200,7 +1206,7 @@ addEventListener('keyup',e=>{
   if(k==='ArrowDown'||k==='s'||k==='S')setHold(false);
 });
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused&&!window.ArcadeSDK)togglePause(true);
+  if(document.hidden&&state.phase==='play'&&!state.paused&&(!window.ArcadeSDK||window.ArcadeSDK.__fallback))togglePause(true);
 });
 $('#play').onclick=()=>{ AU.init(); if(!tutorialSeen){ showTutorial(); return; } startRun(); };
 $('#again').onclick=()=>{ AU.init(); startRun(); };

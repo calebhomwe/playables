@@ -187,6 +187,12 @@
 
 <script>
 (()=>{ 'use strict';
+if(!window.ArcadeSDK){
+  let cfg={}, cheated=false;
+  window.ArcadeSDK={__fallback:true,init(o){cfg=Object.assign(cfg,o||{});return this;},
+    state(){},showMenu(){},get cheated(){return cheated;},
+    tryCode(code){const r=cfg.onCheat?cfg.onCheat(code)||{ok:false}:{ok:false};if(r.ok)cheated=true;return r;}};
+}
 /* ═══════════ SNAKE CLASH — a top-down arena snake.io grower ═══════════
    Fully offline single file. Canvas 2D, no assets, no network, no build.
    Steer a continuously-growing trail snake around a bounded arena, eat
@@ -714,7 +720,7 @@ function beginGame(){
   startGame();
 }
 function openPauseMenu(){
-  if(window.ArcadeSDK){
+  if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){
     try{ArcadeSDK.showMenu();return true;}catch(e){}
   }
   togglePause();
@@ -803,7 +809,7 @@ addEventListener('keyup',e=>{
   if(k==='ArrowRight'||k==='d'||k==='D')IN.right=false;
   if(k==='Shift'||k===' ')IN.boost=false;});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused&&!window.ArcadeSDK)togglePause();});
+  if(document.hidden&&state.phase==='play'&&!state.paused&&(!window.ArcadeSDK||window.ArcadeSDK.__fallback))togglePause();});
 $('#play').onclick=()=>{if(!tutorialSeen){showTutorial();return;}startGame();};
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
 $('#again').onclick=()=>startGame();
