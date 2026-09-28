@@ -1,0 +1,39 @@
+{
+  "howto": [
+    "Tap Play, then read the one-card tutorial on your first run.",
+    "Drag or aim with the mouse to steer into orbs and away from walls and bodies.",
+    "Hold Shift or Space to boost, then tap Play again on the results screen to jump back in."
+  ],
+  "tips": [
+    "Use the Heat HUD chip: Easy buys space, Normal adds pressure, Hard means more rivals are joining.",
+    "Cut across a rival's path only after your snake is clearly longer.",
+    "Short boosts are safer than holding boost until you hit the minimum length."
+  ],
+  "controls": {
+    "keyboard": "Arrow keys steer, Shift or Space boosts, Esc or P pauses, M mutes.",
+    "touch": "Drag to steer, tap the top-right pause button for the menu, and use on-screen buttons for restart or tutorial."
+  },
+  "difficulty": "Adaptive ramp: the Heat HUD moves from Easy to Normal to Hard as your snake grows and more rivals spawn.",
+  "cheats": [
+    {
+      "code": "GOLIATH",
+      "effect": "Starts the session with a giant snake body."
+    },
+    {
+      "code": "GHOST",
+      "effect": "Lets the snake ghost through danger and wrap across arena walls."
+    },
+    {
+      "code": "FRENZY",
+      "effect": "Keeps boost running without spending length."
+    }
+  ],
+  "features": {
+    "one-tap-start": "Tap Play, then tap the tutorial card button to enter the arena.",
+    "instant-restart": "Play again restarts the arena immediately without reloading.",
+    "best-score-badge": "Best length stays on the title and results screens, with a new-best banner for clean runs.",
+    "tutorial-card": "A single first-run tutorial card teaches steering, survival, and boosting and can be replayed from the menu or arcade pause menu.",
+    "results": "The results screen shows score, best, and a one-tap Play again button."
+  },
+  "pauseButton": "none"
+}

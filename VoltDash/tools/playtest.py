@@ -25,6 +25,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8152
 URL = f"http://localhost:{PORT}/index.html"
+SDK = "https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 D = "window.__volt_debug"
@@ -93,6 +94,7 @@ def main():
             pg.wait_for_timeout(1000)
 
             # ---- boot + menu --------------------------------------------------
+            check("ArcadeSDK loaded", pg.evaluate("()=>!!window.ArcadeSDK"))
             check("debug handle exists", pg.evaluate(f"()=>!!{D}"))
             check("canvas present", pg.evaluate("()=>!!document.querySelector('canvas')"))
             body = pg.evaluate("()=>document.body.innerText")
@@ -104,6 +106,14 @@ def main():
             check("menu shows the best score", "best" in low)
             check("menu is the active screen", pg.evaluate(
                 "()=>document.getElementById('s-menu').classList.contains('on')"))
+            real_sdk = pg.evaluate("()=>!window.ArcadeSDK.__fallback")
+            pg.click("#play")
+            pg.wait_for_timeout(180)
+            check("first play opens the tutorial card", pg.evaluate(
+                "()=>document.getElementById('intro').classList.contains('on')"))
+            pg.click("#introPlay")
+            pg.wait_for_timeout(180)
+            check("tutorial card starts the run", pg.evaluate(ST)["phase"] == "play")
             pg.screenshot(path=str(OUT / "01-menu.png"))
 
             # ---- the rAF loop is really rendering -------------------------------
@@ -226,9 +236,14 @@ def main():
             pg.keyboard.press("Escape")
             pg.wait_for_timeout(180)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
-            check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+            if real_sdk:
+                check("SDK pause menu appears", pg.evaluate(
+                    "()=>{const el=document.getElementById('arcade-sdk');return !!(el&&el.classList.contains('on'));}"))
+                pg.click("#arcade-sdk button[data-a='resume']")
+            else:
+                check("fallback pause screen appears", pg.evaluate(
+                    "()=>document.getElementById('s-pause').classList.contains('on')"))
+                pg.click("#resume")
             pg.wait_for_timeout(180)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -243,8 +258,13 @@ def main():
                            "{value:false,configurable:true});"
                            "document.dispatchEvent(new Event('visibilitychange'));"
                            "return 1;"))
-            pg.evaluate(fn(D + ".resume();"))
-            pg.wait_for_timeout(120)
+            pg.wait_for_timeout(180)
+            if real_sdk:
+                check("tab visible auto-resumes hidden pause", pg.evaluate(ST)["paused"] is False)
+            else:
+                pg.evaluate(fn(D + ".resume();"))
+                pg.wait_for_timeout(120)
+                check("tab visible can resume hidden pause", pg.evaluate(ST)["paused"] is False)
 
             # ---- the drain reaches zero and blacks the grid out ------------------
             pg.evaluate(stage(9, 11, 0))
@@ -263,6 +283,16 @@ def main():
             rec = pg.evaluate("()=>JSON.parse(localStorage.getItem('vd_rec'))")
             check("records persisted to vd_rec",
                   rec and rec["games"] >= 1 and rec["best"] >= 1, str(rec))
+            pg.evaluate(stage(90, 12, 620))
+            check("FULLCHARGE code activates", pg.evaluate(
+                "()=>window.ArcadeSDK.tryCode('FULLCHARGE').ok") is True)
+            check("codes badge is visible", pg.evaluate(
+                "()=>!document.getElementById('codesOn').hidden"))
+            best0 = pg.evaluate("()=>JSON.parse(localStorage.getItem('vd_rec')).best")
+            pg.evaluate(fn("return " + D + ".end();"))
+            best1 = pg.evaluate("()=>JSON.parse(localStorage.getItem('vd_rec')).best")
+            check("a cheated run does not overwrite the best score",
+                  best1 == best0, f"{best0} -> {best1}")
             pg.screenshot(path=str(OUT / "06-over.png"))
 
             # ---- restart from the game-over screen -------------------------------
@@ -314,8 +344,9 @@ def main():
             check("sound toggle persists to vd_snd", saved is not None, str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
-            check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
+            bad = [u for u in requests if not (u.startswith(f"http://localhost:{PORT}") or u == SDK)]
+            check(f"no unexpected external requests ({len(requests)} total)", not bad, str(bad[:3]))
+            errors = [e for e in errors if "ERR_NAME_NOT_RESOLVED" not in e]
             check("zero console/page errors", not errors, str(errors[:3]))
 
             br.close()

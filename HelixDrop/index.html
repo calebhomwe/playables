@@ -245,9 +245,10 @@ const BALL_R=22;            // ball radius
 const SEG_W=SHAFT_W/SEG_COUNT;
 const GRAVITY=1500;         // px/s^2 base
 const BOUNCE_V=560;         // bounce launch speed
-const ROT_SPEED=7.0;        // blocks/s while held
-const ROT_RAMP=0.11;        // + blocks/s per depth
-const ROT_MAX=15;           // rotation cap
+const ROT_SPEED=12.0;       // blocks/s while held — must clear the ring-0 gap within its ~0.47s drop window
+const ROT_RAMP=0.08;        // + blocks/s per depth
+const ROT_MAX=20;           // rotation cap
+const ROT_DAMP=24;          // angular ease-in/out rate (1/s) — smooths taps so a quick nudge doesn't snap to full speed
 const MAX_FALL=2600;        // terminal fall speed
 const DANGER_MAX=4;         // max red blocks per ring
 const DEPTH_PER_LEVEL=8;    // rings per tier
@@ -272,7 +273,7 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
 /* ── state ── */
 const ball={x:0,y:START_Y,vy:0,squash:0};
 const state={phase:'menu',paused:false,frozen:false,frames:0,seed:1337,plats:[],
-  rot:0,ring:0,depth:0,bonus:0,combo:0,bestCombo:0,camY:0,shake:0,flash:0,warn:0,
+  rot:0,rotVel:0,ring:0,depth:0,bonus:0,combo:0,bestCombo:0,camY:0,shake:0,flash:0,warn:0,
   slowmo:0,time:0,motes:[],parts:[],rings:[],floats:[]};
 const input={left:false,right:false};
 
@@ -310,7 +311,7 @@ function seedMotes(){ state.motes.length=0; const half=(W/2)/ZOOM;
     y:state.camY+rnd(-H/ZOOM*.5,H/ZOOM),vy:rnd(9,34),r:rnd(1,3),
     w:rnd(.5,2),ph:rnd(0,6.283),a:rnd(.12,.5)}); }
 function resetRun(seed){ state.seed=seed; state.plats=[];
-  state.rot=0;state.ring=0;state.depth=0;state.bonus=0;state.combo=0;state.bestCombo=0;
+  state.rot=0;state.rotVel=0;state.ring=0;state.depth=0;state.bonus=0;state.combo=0;state.bestCombo=0;
   ball.x=0;ball.y=START_Y;ball.vy=0;ball.squash=0;
   state.shake=0;state.flash=0;state.warn=0;state.slowmo=0;state.time=0;
   state.parts=[];state.rings=[];state.floats=[];
@@ -405,7 +406,9 @@ function update(dt){
 
   const ramp=Math.min(ROT_MAX,ROT_SPEED+state.depth*ROT_RAMP);
   let rv=0; if(input.left)rv-=1; if(input.right)rv+=1;
-  state.rot+=rv*ramp*dt;
+  const targetVel=rv*ramp;
+  state.rotVel+=(targetVel-state.rotVel)*Math.min(1,dt*ROT_DAMP);
+  state.rot+=state.rotVel*dt;
   if(coachEl.classList.contains('on')){
     if(coachT>0){ coachT-=dt; if(coachT<=0)coachHide(); }
     if(state.time-coachAt>1&&(Math.abs(state.rot-coachRot0)>0.12||input.left||input.right))coachHide();

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#04080f" />
 <title>VOLT DASH</title>
@@ -27,33 +28,33 @@
        overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
   .cell{flex:1;padding:4px 8px;border-right:2px solid rgba(159,182,214,.16);text-align:center;min-width:0}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.5rem);letter-spacing:.14em;text-transform:uppercase;
        color:var(--dim);font-weight:700;white-space:nowrap;overflow:hidden}
   .cell .val{display:block;font-family:var(--display);font-size:clamp(.82rem,2.6vw,1.12rem);
        line-height:1.15;white-space:nowrap}
   #cells.hot{color:var(--lime)}
   .ebar{display:flex;align-items:center;gap:8px;margin-top:6px;background:var(--glass);
        border:2px solid rgba(159,182,214,.32);border-radius:10px;padding:5px 9px;backdrop-filter:blur(6px)}
-  .elab{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700}
+  .elab{font-size:max(12px,.5rem);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700}
   .etrack{flex:1;height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;
        box-shadow:inset 0 0 0 1px rgba(159,182,214,.22)}
   .efill{height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#3df0a0,#a8ff35)}
   .efill.mid{background:linear-gradient(90deg,#ffd24a,#ffb62e)}
   .efill.low{background:linear-gradient(90deg,#ff5fa4,#ff2e8b);animation:pulse .48s steps(2,end) infinite}
   @keyframes pulse{50%{opacity:.5}}
-  .epct{font-family:var(--display);font-size:.68rem;min-width:2.8em;text-align:right;color:var(--paper)}
+  .epct{font-family:var(--display);font-size:max(12px,.68rem);min-width:2.8em;text-align:right;color:var(--paper)}
   /* first-run coach: short, stepped, skippable — shown where each input matters */
   #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
         background:var(--glass,rgba(5,10,22,.84));border:2px solid var(--lime,#a8ff35);border-radius:12px;
         padding:9px 11px;box-shadow:0 12px 34px rgba(0,0,0,.6);backdrop-filter:blur(8px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:var(--ink,#04080f);background:var(--lime,#a8ff35);border-radius:6px;padding:3px 7px;white-space:nowrap}
-  #coach .ct{font-size:.8rem;font-weight:700;color:var(--paper,#eaf6ff);line-height:1.32}
+  #coach .ct{font-size:max(12px,.8rem);font-weight:700;color:var(--paper,#eaf6ff);line-height:1.32}
   #coach .ct b{color:var(--lime,#a8ff35)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#7d93b5);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -67,11 +68,17 @@
   }
   .sub{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
   .chip{background:var(--glass);border:2px solid rgba(159,182,214,.32);border-radius:8px;
-       padding:3px 9px;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+       padding:3px 9px;font-size:max(12px,.6rem);letter-spacing:.14em;text-transform:uppercase;
        font-weight:700;color:var(--cyan);backdrop-filter:blur(6px);white-space:nowrap;
        font-family:inherit}
   #sndBtn{pointer-events:auto;cursor:pointer;color:var(--dim)}
   #sndBtn.on{color:var(--lime)}
+  #pauseBtn{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));
+       z-index:9;min-width:44px;min-height:44px;padding:0 12px;pointer-events:auto;cursor:pointer}
+  .codes-on{position:fixed;top:calc(max(8px,env(safe-area-inset-top)) + 50px);right:max(8px,env(safe-area-inset-right));
+       z-index:9;background:var(--lime);color:var(--ink);border-radius:999px;padding:6px 10px;
+       font:900 max(12px,.65rem)/1 var(--display);letter-spacing:.12em;text-transform:uppercase;
+       box-shadow:0 8px 20px rgba(0,0,0,.35)}
 
   /* screens */
   .screen{position:fixed;inset:0;display:none;place-items:center;padding:14px;z-index:10;
@@ -81,7 +88,7 @@
   .panel{width:min(480px,100%);text-align:center;background:var(--glass);
          border:2px solid rgba(159,182,214,.30);border-radius:16px;padding:20px 18px;
          box-shadow:0 18px 60px rgba(0,0,0,.65);backdrop-filter:blur(10px)}
-  .kicker{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--lime);font-weight:700}
+  .kicker{font-size:max(12px,.58rem);letter-spacing:.3em;text-transform:uppercase;color:var(--lime);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.6vw,3.3rem);line-height:.92;
          letter-spacing:-.02em;text-transform:uppercase;color:var(--paper);
          text-shadow:0 0 24px rgba(37,230,255,.45),0 0 4px rgba(37,230,255,.6),0 3px 0 rgba(0,0,0,.55)}
@@ -104,15 +111,22 @@
   .log:last-child{border-bottom:none}
   #newbest{display:none;font-family:var(--display);color:var(--lime);margin-top:8px;
            font-size:.94rem;letter-spacing:.1em}
-  .hint{font-size:.6rem;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
+  .hint{font-size:max(12px,.6rem);letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-top:11px;line-height:1.75}
   .legend{display:flex;gap:9px;justify-content:center;margin:11px 0 4px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:.63rem;letter-spacing:.06em;
+  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.63rem);letter-spacing:.06em;
       text-transform:uppercase;color:#c5d4ea;font-weight:700}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  #intro .panel{width:min(500px,100%)}
+  #intro ol{margin:14px 0 0;padding-left:22px;text-align:left;color:#c5d4ea;line-height:1.65;font-size:max(12px,.9rem)}
+  #intro li+li{margin-top:8px}
+  @media (prefers-reduced-motion: reduce){
+    .efill.low,#coach.on{animation:none}
+  }
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>CODES ON</div>
 
 <div id="hud">
   <div class="rack">
@@ -131,12 +145,26 @@
     <button class="chip" id="sndBtn" type="button">Sound On</button>
   </div>
 </div>
+<button class="chip" id="pauseBtn" type="button" aria-label="Pause">II</button>
 
 <div id="coach" role="status" aria-live="polite">
   <span class="ck">Tip</span>
   <span class="ct" id="coachTxt"></span>
   <button class="cx" id="coachX" type="button">Skip</button>
 </div>
+
+<div class="screen" id="intro"><div class="panel">
+  <div class="kicker">Tutorial card</div>
+  <div class="title" style="font-size:1.95rem;margin-top:6px">Ride the<br>live grid</div>
+  <div class="rule"></div>
+  <p class="lede">Three moves keep the city lit. Learn them once, then chase a bigger score.</p>
+  <ol>
+    <li><b>Tap</b> or press <b>SPACE</b> to hop over zappers.</li>
+    <li><b>Hold ↓</b> or swipe down to slide under hanging conduits.</li>
+    <li><b>Tap Shift</b> or swipe right to dash through danger when the meter is healthy.</li>
+  </ol>
+  <button class="btn" id="introPlay">Hit the grid</button>
+</div></div>
 
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Voltworks Power Co.</div>
@@ -150,6 +178,7 @@
   </div>
   <div class="marks" id="menuBest">Best 0</div>
   <button class="btn" id="play">Plug in</button>
+  <button class="btn quiet" id="tutorialBtn" type="button">How to play</button>
   <p class="hint">Tap = hop · swipe down = slide · swipe right = dash<br>
      Space hops · &#8595; slides · Shift dashes · Esc pauses · M mutes</p>
 </div></div>
@@ -176,6 +205,12 @@
 
 <script>
 (()=>{ 'use strict';
+if(!window.ArcadeSDK){
+  let cfg={}, cheated=false;
+  window.ArcadeSDK={__fallback:true,init(o){cfg=Object.assign(cfg,o||{});return this;},
+    state(){},showMenu(){},get cheated(){return cheated;},
+    tryCode(code){const r=cfg.onCheat?cfg.onCheat(code)||{ok:false}:{ok:false};if(r.ok)cheated=true;return r;}};
+}
 /* ═══════════════ VOLT DASH — power-grid energy runner ═══════════════
    Fully offline single file. Canvas 2D, no assets, no network.
    Loop: you auto-run right along a neon power grid. Your battery always
@@ -189,6 +224,19 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let REC=store.get('vd_rec',{games:0,best:0,cells:0,dist:0,dashes:0,hits:0});
+const reportScene=(scene,score)=>{try{if(window.ArcadeSDK)ArcadeSDK.state({scene,score});}catch(e){}};
+const sdkCheated=()=>{try{return !!(window.ArcadeSDK&&ArcadeSDK.cheated);}catch(e){return false;}};
+let reduceMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+try{
+  const mm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
+  if(mm){
+    const onChange=e=>{reduceMotion=!!e.matches;};
+    if(mm.addEventListener)mm.addEventListener('change',onChange);
+    else if(mm.addListener)mm.addListener(onChange);
+  }
+}catch(e){}
+let tutorialSeen=store.get('vd_tutorial_seen',0)===1;
+const cheats={fullCharge:false,slow:false,overdrive:false};
 
 /* palette: acid lime + electric cyan + hot magenta on grid-black. High
    contrast, flat shapes, nothing muddy in the midtones. */
@@ -337,6 +385,37 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.r
 function updMenuBest(){ $('#menuBest').textContent='Best '+REC.best; }
 function updSnd(){ const b=$('#sndBtn'); b.textContent=AU.on?'Sound On':'Sound Off';
   b.classList.toggle('on',AU.on); }
+function cheatsOn(){ return cheats.fullCharge||cheats.slow||cheats.overdrive; }
+function syncCodes(){ $('#codesOn').hidden=!cheatsOn(); }
+function showTutorial(){
+  coachHide();
+  if(state.phase!=='menu')toMenu();
+  else $('#hud').style.display='none';
+  show('#intro');
+  reportScene('title',REC.best);
+}
+function beginRun(){
+  tutorialSeen=true;
+  store.set('vd_tutorial_seen',1);
+  startRun();
+}
+function openPauseMenu(){
+  if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){
+    try{ArcadeSDK.showMenu();return true;}catch(e){}
+  }
+  togglePause(true);
+  return false;
+}
+function applyCheat(code){
+  code=String(code||'').trim().toUpperCase();
+  if(code==='FULLCHARGE'){ cheats.fullCharge=true; syncCodes();
+    state.energy=ENERGY_MAX; hud(); return {ok:true,message:'Infinite charge engaged'}; }
+  if(code==='SLOMO'){ cheats.slow=true; syncCodes();
+    return {ok:true,message:'Slow motion engaged'}; }
+  if(code==='OVERDRIVE'){ cheats.overdrive=true; syncCodes();
+    return {ok:true,message:'Dash cooldown disabled'}; }
+  return {ok:false};
+}
 /* ── first-run coach: two short steps (hop/slide, then dash), each skippable ── */
 let hintStep=store.get('vd_hint',0)|0, coachT=0, coachAt=0;
 const coachEl=$('#coach'), coachTxt=$('#coachTxt');
@@ -408,10 +487,13 @@ function startRun(){
   resetWorld(); state.phase='play'; state.paused=false; coachHide();
   show(null); $('#hud').style.display='flex';
   AU.init(); AU.go(); hud();
+  syncCodes();
+  reportScene('play',0);
 }
 function toMenu(){
   resetWorld(); state.phase='menu'; state.paused=false; state.energy=ENERGY_MAX;
   show('#s-menu'); $('#hud').style.display='none'; updMenuBest();
+  reportScene('title',REC.best);
 }
 function togglePause(force){
   if(state.phase!=='play')return;
@@ -424,8 +506,8 @@ function togglePause(force){
 function runOver(reason){
   if(state.phase!=='play')return;
   state.phase='over'; state.paused=false; state.dashT=0; state.sliding=false;
-  const sc=scoreNow(), d=Math.floor(state.dist), nb=sc>REC.best&&sc>0;
-  REC.games++; REC.best=Math.max(REC.best,sc); REC.cells+=state.cells;
+  const sc=scoreNow(), d=Math.floor(state.dist), cheated=sdkCheated()||cheatsOn(), nb=!cheated&&sc>REC.best&&sc>0;
+  REC.games++; if(!cheated)REC.best=Math.max(REC.best,sc); REC.cells+=state.cells;
   REC.dist+=d; REC.dashes+=state.dashes; REC.hits+=state.hits;
   store.set('vd_rec',REC);
   AU.over();
@@ -434,9 +516,10 @@ function runOver(reason){
   $('#newbest').style.display=nb?'block':'none';
   $('#overStats').innerHTML=[['Score',sc],['Distance',d+' m'],['Battery cells',state.cells],
     ['Cells missed',state.missed],['Dashes',state.dashes],['Hits taken',state.hits],
-    ['All-time best',REC.best]]
+    ['All-time best',REC.best]].concat(cheated?[['Codes','On · no record']]:[])
     .map(r=>'<div class="log"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
   show('#s-over'); $('#hud').style.display='none'; updMenuBest();
+  reportScene('over',sc);
 }
 
 /* ── track dressing: battery cells + the two obstacle kinds ─────────── */
@@ -505,9 +588,10 @@ function setHold(on){
 }
 function doDash(){
   if(state.phase!=='play'||state.paused)return false;
-  if(state.dashT>0||state.energy<DASH_COST)return false;
-  state.energy-=DASH_COST; state.dashT=DASH_TIME; state.dashes++;
-  state.shake=Math.max(state.shake,.42); state.flash=Math.max(state.flash,.30);
+  if(!cheats.overdrive&&(state.dashT>0||state.energy<DASH_COST))return false;
+  if(!cheats.overdrive)state.energy-=DASH_COST;
+  state.dashT=cheats.overdrive?Math.max(state.dashT,DASH_TIME*.45):DASH_TIME; state.dashes++;
+  if(!reduceMotion){ state.shake=Math.max(state.shake,.42); state.flash=Math.max(state.flash,.30); }
   AU.dash();
   ring(RUN_X,sy(state.py+.55),P.cyan,14,420);
   float(RUN_X,sy(state.py+1.75),'DASH',P.cyan,18);
@@ -526,8 +610,9 @@ function collectCell(e){
 function damage(e){
   if(state.hitCd>0||state.dashT>0)return;
   e.done=true; e.hit=true; state.hits++;
-  state.hitCd=DAMAGE_CD; state.energy-=HIT_COST;
-  state.shake=1; state.flash=1; state.sq=.84;
+  state.hitCd=DAMAGE_CD; state.energy-=cheats.fullCharge?0:HIT_COST;
+  if(!reduceMotion){ state.shake=1; state.flash=1; }
+  state.sq=.84;
   const x=sx(e.z), y=sy(e.y0+.7);
   sparks(18,x,y,P.magenta,330,.7); sparks(9,x,y,P.paper,240,.5);
   ring(x,y,P.magenta,10,240); ring(x,y,P.paper,6,300);
@@ -551,10 +636,11 @@ function updFX(dt){
 }
 function update(dt,force){
   if(state.frozen&&!force)return;
+  if(cheats.slow&&state.phase==='play')dt*=.6;
   state.time+=dt;
   updFX(dt);
-  state.shake=Math.max(0,state.shake-dt*3.2);
-  state.flash=Math.max(0,state.flash-dt*2.6);
+  state.shake=reduceMotion?0:Math.max(0,state.shake-dt*3.2);
+  state.flash=reduceMotion?0:Math.max(0,state.flash-dt*2.6);
   if(state.phase==='menu'){
     state.dist+=MENU_SPEED*dt; state.speed=MENU_SPEED; state.runPh+=dt*9;
     state.energy=ENERGY_MAX;
@@ -597,7 +683,7 @@ function update(dt,force){
     sparks(1,RUN_X+rnd(-24,10),sy(state.py+rnd(.2,1.05)),P.cyan,240,.35);
 
   /* the drain: this is the whole game */
-  state.energy-=drainNow()*dt;
+  state.energy=cheats.fullCharge?ENERGY_MAX:state.energy-drainNow()*dt;
   if(state.energy<=0){ state.energy=0; runOver('drained'); hud(); return; }
   if(state.energy<ENERGY_MAX*.25){ state.lowT-=dt;
     if(state.lowT<=0){ state.lowT=.5; AU.low(); } }
@@ -1062,7 +1148,7 @@ function render(){
   const sky=skyNow();
   state.frames++;
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  const sh=state.shake*state.shake;
+  const sh=reduceMotion?0:state.shake*state.shake;
   const ox=(Math.random()-.5)*sh*24, oy=(Math.random()-.5)*sh*24;
   ctx.save(); ctx.translate(ox,oy);
   drawSky(sky); drawStars(sky); drawSkyline(sky); drawPylons(sky); drawMidwall(sky);
@@ -1072,7 +1158,7 @@ function render(){
   drawTrail();
   drawSpeedLines();
   drawFX();
-  if(state.flash>0){ ctx.fillStyle=withA('#ffffff',Math.min(.42,state.flash*.36));
+  if(!reduceMotion&&state.flash>0){ ctx.fillStyle=withA('#ffffff',Math.min(.42,state.flash*.36));
     ctx.fillRect(-80,-80,W+160,H+160); }
   ctx.restore();
   drawVignette(); drawScan();
@@ -1105,11 +1191,14 @@ addEventListener('keydown',e=>{
   if(e.target&&e.target.tagName==='INPUT')return;
   if(k===' '||k==='Spacebar'||k==='ArrowUp'||k==='w'||k==='W'||k==='Enter'){
     e.preventDefault();
-    if(state.phase==='menu'||state.phase==='over'){ AU.init(); startRun(); return; }
+    if(state.phase==='menu'||state.phase==='over'){
+      AU.init();
+      if(state.phase==='menu'&&!tutorialSeen){ showTutorial(); return; }
+      startRun(); return; }
     hop(); return; }
   if(k==='ArrowDown'||k==='s'||k==='S'){ e.preventDefault(); setHold(true); return; }
   if(k==='Shift'||k==='x'||k==='X'){ e.preventDefault(); doDash(); return; }
-  if(k==='Escape'||k==='p'||k==='P'){ if(state.phase==='play')togglePause(); return; }
+  if(k==='Escape'||k==='p'||k==='P'){ if(state.phase==='play')openPauseMenu(); return; }
   if(k==='m'||k==='M'){ AU.init(); AU.on=!AU.on; store.set('vd_snd',AU.on); updSnd(); }
 },{passive:false});
 addEventListener('keyup',e=>{
@@ -1117,15 +1206,23 @@ addEventListener('keyup',e=>{
   if(k==='ArrowDown'||k==='s'||k==='S')setHold(false);
 });
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true);
+  if(document.hidden&&state.phase==='play'&&!state.paused){
+    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback&&typeof ArcadeSDK.pause==='function'){
+      try{ArcadeSDK.pause();}catch(e){ togglePause(true); }
+    }
+    else togglePause(true);
+  }
 });
-$('#play').onclick=()=>{ AU.init(); startRun(); };
+$('#play').onclick=()=>{ AU.init(); if(!tutorialSeen){ showTutorial(); return; } startRun(); };
 $('#again').onclick=()=>{ AU.init(); startRun(); };
 $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); runOver('lowvolt'); };
 $('#sndBtn').onclick=()=>{ AU.init(); AU.on=!AU.on; store.set('vd_snd',AU.on); updSnd(); AU.ui(); };
+$('#pauseBtn').onclick=()=>{ AU.ui(); openPauseMenu(); };
 $('#coachX').onclick=coachHide;
+$('#tutorialBtn').onclick=showTutorial;
+$('#introPlay').onclick=()=>{ AU.init(); beginRun(); };
 
 /* ── test hook (drives tools/playtest.py; read-mostly, do not remove) ── */
 function place(kind,ahead,y){
@@ -1237,11 +1334,12 @@ window.__volt_debug={
     invuln:(state.hitCd>0||state.dashT>0),hitCd:+state.hitCd.toFixed(2),
     sector:sectorNum(),sectorName:sectorName(),
     ents:{cells:cnt('cell'),spikes:cnt('spike'),beams:cnt('beam')},
-    rec:JSON.parse(JSON.stringify(REC)),snd:AU.on}; },
+    codes:{...cheats},rec:JSON.parse(JSON.stringify(REC)),snd:AU.on,sdk:!!window.ArcadeSDK}; },
   start(){ startRun(); return this.state(); },
   menu(){ toMenu(); return this.state(); },
-  wipe(){ try{localStorage.removeItem('vd_rec')}catch(e){}
-    REC={games:0,best:0,cells:0,dist:0,dashes:0,hits:0}; updMenuBest(); return this.state(); },
+  wipe(){ try{localStorage.removeItem('vd_rec');localStorage.removeItem('vd_tutorial_seen')}catch(e){}
+    REC={games:0,best:0,cells:0,dist:0,dashes:0,hits:0}; tutorialSeen=false;
+    cheats.fullCharge=cheats.slow=cheats.overdrive=false; syncCodes(); updMenuBest(); return this.state(); },
   pause(){ togglePause(true); return this.state(); },
   resume(){ togglePause(false); return this.state(); },
   end(){ runOver('lowvolt'); return this.state(); },
@@ -1266,7 +1364,18 @@ window.__volt_debug={
 };
 
 /* ── boot ───────────────────────────────────────────────────────────── */
-resize(); updSnd(); toMenu(); requestAnimationFrame(tick);
+resize(); updSnd(); syncCodes(); toMenu();
+if(window.ArcadeSDK)ArcadeSDK.init({
+  pauseKeys:'esc',
+  pauseButton:'none',
+  onPause(){ state.paused=true; },
+  onResume(){ state.paused=false; },
+  onRestart(){ startRun(); },
+  onExit(){ toMenu(); },
+  onTutorial(){ showTutorial(); },
+  onCheat(code){ return applyCheat(code); }
+});
+requestAnimationFrame(tick);
 })();
 </script>
 </body>

@@ -37,6 +37,7 @@
        font-weight:700;color:var(--cyan);backdrop-filter:blur(6px);white-space:nowrap}
   #sndBtn{pointer-events:auto;cursor:pointer;font-family:inherit;color:var(--dim)}
   #sndBtn.on{color:var(--gold)}
+  #pauseBtn{pointer-events:auto;cursor:pointer;font-family:inherit;color:var(--dim);min-height:28px;min-width:44px}
   /* first-run coach: one core input, shown where it first matters, skippable */
   #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,460px);
@@ -108,6 +109,7 @@
   </div>
   <div class="sub">
     <span class="chip" id="zoneName">Zone 1 · Daylight</span>
+    <button class="chip" id="pauseBtn" type="button" aria-label="Pause">⏸ Pause</button>
     <button class="chip" id="sndBtn" type="button">Sound On</button>
   </div>
 </div>
@@ -130,7 +132,7 @@
   </div>
   <div class="marks" id="menuBest">Best 0</div>
   <button class="btn" id="play">Start the climb</button>
-  <p class="hint">← → or A / D steer · tap left/right half or swipe on touch<br>Space or Esc pauses · M mutes</p>
+  <p class="hint">← → or A / D steer · tap left/right half or swipe on touch<br>Space, Esc, or the ⏸ button pauses · M mutes</p>
 </div></div>
 
 <div class="screen" id="s-pause"><div class="panel">
@@ -961,6 +963,7 @@ $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); state.paused=false; crash('wall',null); };
 $('#sndBtn').onclick=()=>{ AU.init(); AU.on=!AU.on; store.set('rr_snd',AU.on); updSnd(); AU.ui(); };
+$('#pauseBtn').onclick=()=>{ AU.ui(); if(state.phase==='play')togglePause(); };
 $('#coachX').onclick=coachHide;
 addEventListener('resize',resize);
 addEventListener('orientationchange',()=>setTimeout(resize,120));

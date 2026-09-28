@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#070c18" />
 <title>SNAKE CLASH</title>
@@ -27,7 +28,7 @@
         backdrop-filter:blur(10px);box-shadow:0 12px 34px rgba(0,0,0,.45);overflow:hidden}
   .cell{padding:8px 15px;border-right:1px solid var(--line);text-align:center;min-width:72px}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;
+  .cell .lab{display:block;font-size:max(12px,.55rem);letter-spacing:.18em;text-transform:uppercase;
              color:var(--dim);font-weight:700}
   .cell .val{display:block;font-family:var(--display);font-size:1.3rem;line-height:1.18;
              color:var(--ink);text-shadow:0 0 16px rgba(63,240,138,.35)}
@@ -43,12 +44,12 @@
         background:var(--glass,rgba(10,20,38,.84));border:1.5px solid var(--acc,#3ff08a);border-radius:14px;
         padding:9px 12px;box-shadow:0 12px 34px rgba(0,0,0,.55);backdrop-filter:blur(10px)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;
+  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.14em;text-transform:uppercase;
         color:#04140b;background:var(--acc,#3ff08a);border-radius:7px;padding:3px 8px;white-space:nowrap}
-  #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#eaf6ff);line-height:1.32}
+  #coach .ct{font-size:max(12px,.8rem);font-weight:700;color:var(--ink,#eaf6ff);line-height:1.32}
   #coach .ct b{color:var(--acc,#3ff08a)}
   #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(255,255,255,.1);
-        color:var(--dim,#8fa6c4);border-radius:7px;padding:5px 8px;font-size:.58rem;letter-spacing:.1em;
+        color:var(--dim,#8fa6c4);border-radius:7px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
         text-transform:uppercase;font-family:inherit}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
@@ -68,7 +69,7 @@
          border-radius:22px;border:1px solid var(--line);backdrop-filter:blur(14px);
          background:linear-gradient(180deg,rgba(14,26,48,.88),rgba(7,13,26,.92));
          box-shadow:0 26px 64px rgba(0,0,0,.6)}
-  .kicker{font-size:.6rem;letter-spacing:.32em;text-transform:uppercase;color:var(--acc2);font-weight:700}
+  .kicker{font-size:max(12px,.6rem);letter-spacing:.32em;text-transform:uppercase;color:var(--acc2);font-weight:700}
   .title{font-family:var(--display);font-size:clamp(2.1rem,8.6vw,3.5rem);line-height:.95;margin-top:6px;
          text-transform:uppercase;letter-spacing:-.01em;
          background:linear-gradient(180deg,#ffffff,#8df8cf 55%,#25e6c8);
@@ -78,10 +79,10 @@
   .lede{color:#b9cbe4;line-height:1.65;font-size:.9rem}
   .lede b{color:var(--ink)}
   .howto{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;margin:16px 0 2px;text-align:left}
-  .howto span{font-size:.7rem;color:var(--dim);border:1px solid var(--line);border-radius:10px;
+  .howto span{font-size:max(12px,.7rem);color:var(--dim);border:1px solid var(--line);border-radius:10px;
               padding:7px 9px;background:rgba(255,255,255,.03);line-height:1.35}
-  .howto b{color:var(--acc);font-family:var(--display);font-size:.68rem;letter-spacing:.04em}
-  .best{margin-top:14px;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  .howto b{color:var(--acc);font-family:var(--display);font-size:max(12px,.68rem);letter-spacing:.04em}
+  .best{margin-top:14px;font-size:max(12px,.68rem);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
   .best b{font-family:var(--display);font-size:1.5rem;color:var(--gold);margin-left:8px;letter-spacing:0}
   .btn{cursor:pointer;width:100%;margin-top:16px;padding:15px;border:none;border-radius:14px;
        font-family:var(--display);font-size:1rem;letter-spacing:.08em;text-transform:uppercase;
@@ -90,7 +91,7 @@
   .btn:active{transform:translateY(2px)}
   .btn.quiet{background:transparent;color:var(--ink);border:1px solid var(--line);
              box-shadow:none;font-size:.84rem}
-  .hint{font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:12px}
+  .hint{font-size:max(12px,.64rem);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:12px}
   #newbest{display:none;font-family:var(--display);color:var(--gold);margin-top:10px;
            font-size:1rem;letter-spacing:.14em}
   #overStats{margin-top:12px;text-align:left}
@@ -98,16 +99,28 @@
        border-bottom:1px solid var(--line);font-size:.82rem;color:var(--dim)}
   .log b{font-family:var(--display);color:var(--ink)}
   .log:last-child{border-bottom:none}
+  .codes-on{position:fixed;top:calc(max(10px,env(safe-area-inset-top)) + 52px);right:max(10px,env(safe-area-inset-right));
+       z-index:9;background:var(--gold);color:#04170f;border-radius:999px;padding:6px 10px;
+       font:900 max(12px,.65rem)/1 var(--display);letter-spacing:.12em;text-transform:uppercase;
+       box-shadow:0 8px 22px rgba(0,0,0,.35)}
+  #intro .panel{width:min(500px,100%)}
+  #intro ol{margin:14px 0 0;padding-left:22px;text-align:left;color:#b9cbe4;line-height:1.65;font-size:max(12px,.9rem)}
+  #intro li+li{margin-top:8px}
+  @media (prefers-reduced-motion: reduce){
+    #coach.on{animation:none}
+  }
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
+<div class="codes-on" id="codesOn" hidden>CODES ON</div>
 
 <div id="hud">
   <div class="rack">
     <div class="cell"><span class="lab">Length</span><span class="val" id="len">14</span></div>
     <div class="cell"><span class="lab">Score</span><span class="val" id="score">0</span></div>
     <div class="cell"><span class="lab">Rank</span><span class="val" id="rank">#1</span></div>
+    <div class="cell"><span class="lab">Heat</span><span class="val" id="heat">Easy</span></div>
   </div>
   <div class="ctrls">
     <button class="ic" id="sndBtn" title="Sound">♪</button>
@@ -120,6 +133,19 @@
   <span class="ct" id="coachTxt"></span>
   <button class="cx" id="coachX" type="button">Skip</button>
 </div>
+
+<div class="screen" id="intro"><div class="panel">
+  <div class="kicker">Tutorial card</div>
+  <div class="title" style="font-size:2rem;margin-top:6px">Own the<br>arena</div>
+  <div class="rule"></div>
+  <p class="lede">Grow fast, steer clean, and burst rivals before they burst you.</p>
+  <ol>
+    <li><b>Drag</b> or aim with the mouse to steer into glowing orbs.</li>
+    <li><b>Keep clear of bodies and walls</b> until you are long enough to bully a rival.</li>
+    <li><b>Hold Shift or Space</b> to boost when you need a quick cut or escape.</li>
+  </ol>
+  <button class="btn" id="introPlay">Strike first</button>
+</div></div>
 
 <div class="screen on" id="s-menu"><div class="panel">
   <div class="kicker">Arena · one snake versus many</div>
@@ -135,6 +161,7 @@
   </div>
   <div class="best">Best length<b id="best">0</b></div>
   <button class="btn" id="play">Play</button>
+  <button class="btn quiet" id="tutorialBtn" type="button">How to play</button>
   <p class="hint">Tap anywhere or press SPACE to start</p>
 </div></div>
 
@@ -160,6 +187,12 @@
 
 <script>
 (()=>{ 'use strict';
+if(!window.ArcadeSDK){
+  let cfg={}, cheated=false;
+  window.ArcadeSDK={__fallback:true,init(o){cfg=Object.assign(cfg,o||{});return this;},
+    state(){},showMenu(){},get cheated(){return cheated;},
+    tryCode(code){const r=cfg.onCheat?cfg.onCheat(code)||{ok:false}:{ok:false};if(r.ok)cheated=true;return r;}};
+}
 /* ═══════════ SNAKE CLASH — a top-down arena snake.io grower ═══════════
    Fully offline single file. Canvas 2D, no assets, no network, no build.
    Steer a continuously-growing trail snake around a bounded arena, eat
@@ -173,6 +206,19 @@ const d2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy;};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let REC=store.get('sc_rec',{games:0,best:0,bestScore:0,orbs:0,kills:0});
+const reportScene=(scene,score)=>{try{if(window.ArcadeSDK)ArcadeSDK.state({scene,score});}catch(e){}};
+const sdkCheated=()=>{try{return !!(window.ArcadeSDK&&ArcadeSDK.cheated);}catch(e){return false;}};
+let reduceMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+try{
+  const mm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)');
+  if(mm){
+    const onChange=e=>{reduceMotion=!!e.matches;};
+    if(mm.addEventListener)mm.addEventListener('change',onChange);
+    else if(mm.addListener)mm.addListener(onChange);
+  }
+}catch(e){}
+let tutorialSeen=store.get('sc_tutorial_seen',0)===1;
+const cheats={goliath:false,ghost:false,frenzy:false};
 
 /* ═══ tuning ═══ */
 const ARENA=2600;          /* arena is ARENA x ARENA world px */
@@ -315,6 +361,8 @@ function addRival(){
 function reset(){
   state.player=makeSnake({x:ARENA/2,y:ARENA/2,heading:-Math.PI/2,
     c:P.player,d:P.playerDark,name:'YOU',len:START_LEN});
+  if(cheats.goliath){for(let i=state.player.len;i<90;i++)hset(state.player,i,hx(state.player,i-1),hy(state.player,i-1));
+    state.player.len=90;state.player.maxLen=90;}
   state.rivals=[];state.orbs=[];state.parts=[];state.floats=[];state.rings=[];
   state.orbsEaten=0;state.kills=0;state.shake=0;state.runTime=0;state.rank=1;
   state.crash=null;state.freeze=false;state.paused=false;state.boostAcc=0;state.spawnT=0;
@@ -378,11 +426,25 @@ function headHitsBody(A,B){const rr=HEAD_R+SEG_R,r2=rr*rr,n=Math.min(B.len,MAXSE
   return false;}
 function killRival(r){
   r.alive=false; state.kills++;
-  burst(r,r.hue); state.shake=Math.max(state.shake,.55);
+  burst(r,r.hue); if(!reduceMotion)state.shake=Math.max(state.shake,.55);
   AU.ram(); float(r.x,r.y,'BURST','#ffd76e');
   const i=state.rivals.indexOf(r); if(i>=0)state.rivals.splice(i,1);}
+function ghostWrap(p){
+  if(!cheats.ghost||!p)return false;
+  let wrapped=false;
+  if(p.x<WALL){p.x=ARENA-WALL-2;wrapped=true;}
+  else if(p.x>ARENA-WALL){p.x=WALL+2;wrapped=true;}
+  if(p.y<WALL){p.y=ARENA-WALL-2;wrapped=true;}
+  else if(p.y>ARENA-WALL){p.y=WALL+2;wrapped=true;}
+  if(wrapped){
+    p.idx=0;p.acc=0;
+    for(let k=0;k<MAXSEG;k++){p.hist[k*2]=p.x;p.hist[k*2+1]=p.y;}
+  }
+  return wrapped;
+}
 function collide(){
   const p=state.player; if(state.phase!=='play'||!p.alive)return;
+  if(cheats.ghost){ ghostWrap(p); return; }
   for(let i=state.rivals.length-1;i>=0;i--){const r=state.rivals[i];
     if(!r.alive)continue;
     if(headHitsBody(p,r)){kill('rival');return;}
@@ -406,6 +468,7 @@ function rampRivals(dt){
 /* ═══ scores ═══ */
 const score=()=>Math.round((state.player?state.player.maxLen:0)+state.orbsEaten+Math.floor(state.runTime));
 function rankOf(p){let r=1;for(const q of state.rivals)if(q.alive&&q.len>p.len)r++;return r;}
+function heatLevel(){const len=state.player?state.player.len:START_LEN;return len<28?'Easy':len<52?'Normal':'Hard';}
 
 /* ═══ fx update ═══ */
 function anim(dt){
@@ -416,7 +479,7 @@ function anim(dt){
     f.y-=30*dt;f.a-=dt*1.1;if(f.a<=0)state.floats.splice(i,1);}
   for(let i=state.rings.length-1;i>=0;i--){const g=state.rings[i];
     g.r+=g.vr*dt;g.a-=dt*1.7;if(g.a<=0)state.rings.splice(i,1);}
-  state.shake=Math.max(0,state.shake-dt*2.6);
+  state.shake=reduceMotion?0:Math.max(0,state.shake-dt*2.6);
   const p=state.player; if(p)p.mouth=Math.max(0,p.mouth-dt*3);}
 function boostTrail(dt){const p=state.player;state.boostAcc+=dt*30;
   while(state.boostAcc>1){state.boostAcc-=1;
@@ -425,6 +488,7 @@ function boostTrail(dt){const p=state.player;state.boostAcc+=dt*30;
 
 /* ═══ the step ═══ */
 function update(dt){
+  if(cheats.frenzy&&state.phase==='play')dt*=1.15;
   state.time+=dt;
   const p=state.player;
   if(state.phase==='menu'){
@@ -454,11 +518,11 @@ function update(dt){
   }
   p.heading=(p.heading+TAU)%TAU;
   /* ---- boost: speed paid for in length ---- */
-  const want=IN.boost&&p.len>MIN_BOOST_LEN;
+  const want=(IN.boost||cheats.frenzy)&&p.len>MIN_BOOST_LEN;
   if(want!==p.boosting){p.boosting=want; if(want)AU.boostOn(); else AU.boostOff();}
-  if(p.boosting){state.shake=Math.max(state.shake,.05);
+  if(p.boosting){if(!reduceMotion)state.shake=Math.max(state.shake,.05);
     p.burn+=BURN_RATE*dt;
-    while(p.burn>=1&&p.len>MIN_BOOST_LEN){p.burn-=1;p.len--;}
+    while(p.burn>=1&&p.len>MIN_BOOST_LEN){p.burn-=1;if(!cheats.frenzy)p.len--;}
     p.boostFx=Math.min(1,p.boostFx+dt*4); boostTrail(dt);}
   else p.boostFx=Math.max(0,p.boostFx-dt*3);
   /* ---- everyone moves ---- */
@@ -509,8 +573,10 @@ function drawSnake(s,isPlayer){
   ctx.beginPath();trace(s,n,st);ctx.strokeStyle='rgba(255,255,255,.2)';
   ctx.lineWidth=Math.max(2,SEG_R*.55);ctx.stroke();
   drawHead(s,isPlayer);
-  if(!isPlayer){ctx.font='700 11px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
-    ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(s.name,s.x,s.y-SEG_R*2.4);}
+  if(!isPlayer){ctx.font='800 12px "Segoe UI",Arial,sans-serif';ctx.textAlign='center';
+    ctx.lineJoin='round';ctx.strokeStyle='rgba(0,0,0,.85)';ctx.lineWidth=3;
+    ctx.strokeText(s.name,s.x,s.y-SEG_R*2.4);
+    ctx.fillStyle='#fff';ctx.fillText(s.name,s.x,s.y-SEG_R*2.4);}
   ctx.restore();}
 function drawOrb(o){
   const pu=.6+.4*Math.sin(state.time*o.sp+o.ph), size=o.r*(4.6+pu*1.5);
@@ -558,7 +624,8 @@ function render(){
   const z=state.zoom, cx=camX(), cy=camY();
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle=P.bg;ctx.fillRect(0,0,W,H);
-  const shx=(Math.random()-.5)*state.shake*16, shy=(Math.random()-.5)*state.shake*16;
+  const shake=reduceMotion?0:state.shake;
+  const shx=(Math.random()-.5)*shake*16, shy=(Math.random()-.5)*shake*16;
   ctx.save();
   ctx.translate(W/2+shx,H/2+shy);ctx.scale(z,z);ctx.translate(-cx,-cy);
   drawArena();
@@ -626,17 +693,51 @@ function advance(sec){
   render(); return state.frames;}
 
 /* ═══ HUD + screens ═══ */
-const lastHud={len:-1,score:-1,rank:-1};
+const lastHud={len:-1,score:-1,rank:-1,heat:''};
 function hud(){
-  const p=state.player, l=Math.round(p?p.len:0), s=score(), r=state.rank;
+  const p=state.player, l=Math.round(p?p.len:0), s=score(), r=state.rank, h=heatLevel();
   if(l!==lastHud.len){lastHud.len=l;$('#len').textContent=l;}
   if(s!==lastHud.score){lastHud.score=s;$('#score').textContent=s;}
-  if(r!==lastHud.rank){lastHud.rank=r;$('#rank').textContent='#'+r;}}
+  if(r!==lastHud.rank){lastHud.rank=r;$('#rank').textContent='#'+r;}
+  if(h!==lastHud.heat){lastHud.heat=h;$('#heat').textContent=h;}}
 const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   if(id)$(id).classList.add('on');}
 function menuHud(){const b=$('#best');if(b)b.textContent=Math.max(REC.best,state.best);}
 function syncSnd(){const b=$('#sndBtn');if(b)b.textContent=AU.on?'♪':'✕';}
+function cheatsOn(){return cheats.goliath||cheats.ghost||cheats.frenzy;}
+function syncCodes(){const el=$('#codesOn');if(el)el.hidden=!cheatsOn();}
+function showTutorial(){
+  coachHide();
+  if(state.phase!=='menu')toMenu();
+  else $('#hud').style.display='none';
+  show('#intro');
+  reportScene('title',REC.best);
+}
+function beginGame(){
+  tutorialSeen=true;
+  store.set('sc_tutorial_seen',1);
+  startGame();
+}
+function openPauseMenu(){
+  if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){
+    try{ArcadeSDK.showMenu();return true;}catch(e){}
+  }
+  togglePause();
+  return false;
+}
+function applyCheat(code){
+  code=String(code||'').trim().toUpperCase();
+  if(code==='GOLIATH'){
+    cheats.goliath=true;
+    const p=state.player,want=90;
+    if(p&&want>p.len){for(let i=p.len;i<want;i++)hset(p,i,hx(p,i-1),hy(p,i-1));p.len=want;p.maxLen=Math.max(p.maxLen,want);}
+    hud();syncCodes();return {ok:true,message:'Giant snake engaged'};
+  }
+  if(code==='GHOST'){cheats.ghost=true;syncCodes();return {ok:true,message:'Ghost wrap engaged'};}
+  if(code==='FRENZY'){cheats.frenzy=true;syncCodes();return {ok:true,message:'Frenzy boost engaged'};}
+  return {ok:false};
+}
 /* ── first-run coach: two short steps (steer, then boost), each skippable ── */
 let hintStep=store.get('sc_hint',0)|0, coachT=0, coachAt=0;
 const coachEl=$('#coach'), coachTxt=$('#coachTxt');
@@ -650,20 +751,20 @@ function maybeCoach(){
   else { hintStep=2; store.set('sc_hint',2);
     coachShow('Boost','Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
 function startGame(){AU.init();reset();state.phase='play';coachHide();show(null);
-  $('#hud').style.display='flex';hud();AU.click();}
+  $('#hud').style.display='flex';hud();syncCodes();AU.click();reportScene('play',0);}
 function togglePause(){if(state.phase!=='play')return;state.paused=!state.paused;
   show(state.paused?'#s-pause':null);}
 function toMenu(){state.phase='menu';state.paused=false;reset();show('#s-menu');
-  $('#hud').style.display='none';menuHud();}
+  $('#hud').style.display='none';menuHud();reportScene('title',REC.best);}
 function kill(reason){
   const p=state.player;
   if(state.phase!=='play'||!p||!p.alive)return;
-  p.alive=false;state.crash=reason||'debug';state.phase='over';state.shake=1;
+  p.alive=false;state.crash=reason||'debug';state.phase='over';if(!reduceMotion)state.shake=1;
   burst(p,150);AU.burst();AU.over();
   state.best=Math.max(state.best,p.maxLen);
-  const nb=p.maxLen>REC.best;
-  REC.games++;REC.best=Math.max(REC.best,p.maxLen);
-  REC.bestScore=Math.max(REC.bestScore,score());
+  const cheated=sdkCheated()||cheatsOn(), nb=!cheated&&p.maxLen>REC.best;
+  REC.games++;if(!cheated)REC.best=Math.max(REC.best,p.maxLen);
+  if(!cheated)REC.bestScore=Math.max(REC.bestScore,score());
   REC.orbs+=state.orbsEaten;REC.kills+=state.kills;store.set('sc_rec',REC);
   $('#overKick').textContent=reason==='wall'?'The wall bit back':
     reason==='rival'?'Straight into a rival':'Head-on collision';
@@ -671,9 +772,9 @@ function kill(reason){
   $('#newbest').style.display=nb?'block':'none';
   $('#overStats').innerHTML=[['Length',Math.round(p.maxLen)],['Score',score()],
     ['Orbs eaten',state.orbsEaten],['Rivals burst',state.kills],
-    ['Survived',fmt(state.runTime)],['Best length',REC.best]]
+    ['Survived',fmt(state.runTime)],['Best length',REC.best]].concat(cheated?[['Codes','On · no record']]:[])
     .map(r=>'<div class="log"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('');
-  show('#s-over');$('#hud').style.display='none';}
+  show('#s-over');$('#hud').style.display='none';reportScene('over',score());}
 
 /* ═══ input ═══ */
 function worldPointer(){
@@ -686,7 +787,7 @@ addEventListener('pointermove',onMove,{passive:true});
 addEventListener('pointerdown',e=>{
   AU.init();
   if(e.target&&e.target.closest&&e.target.closest('button'))return;
-  if(state.phase==='menu'){startGame();return;}
+  if(state.phase==='menu'){ if(!tutorialSeen){ showTutorial(); return; } startGame(); return; }
   state.pointer.x=e.clientX;state.pointer.y=e.clientY;state.pointer.on=true;
 },{passive:true});
 addEventListener('keydown',e=>{
@@ -696,10 +797,11 @@ addEventListener('keydown',e=>{
   if(k==='ArrowRight'||k==='d'||k==='D'){IN.right=true;e.preventDefault();}
   if(k==='Shift'||k===' ')IN.boost=true;
   if(k===' '||k==='Enter'){e.preventDefault();
-    if(state.phase==='menu'||state.phase==='over')startGame();}
+    if(state.phase==='menu'||state.phase==='over'){
+      if(state.phase==='menu'&&!tutorialSeen)showTutorial();
+      else startGame();}}
   if(k==='Escape'){e.preventDefault();
-    if(state.phase==='play')togglePause();
-    else if(state.phase==='menu')startGame();}
+    if(state.phase==='play')openPauseMenu();}
   if(k==='m'||k==='M'){AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();}});
 addEventListener('keyup',e=>{
   const k=e.key;
@@ -707,15 +809,22 @@ addEventListener('keyup',e=>{
   if(k==='ArrowRight'||k==='d'||k==='D')IN.right=false;
   if(k==='Shift'||k===' ')IN.boost=false;});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused)togglePause();});
-$('#play').onclick=()=>startGame();
+  if(document.hidden&&state.phase==='play'&&!state.paused){
+    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback&&typeof ArcadeSDK.pause==='function'){
+      try{ArcadeSDK.pause();}catch(e){ togglePause(); }
+    }
+    else togglePause();
+  }});
+$('#play').onclick=()=>{if(!tutorialSeen){showTutorial();return;}startGame();};
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
 $('#again').onclick=()=>startGame();
 $('#menu2').onclick=()=>toMenu();
 $('#menu3').onclick=()=>toMenu();
-$('#pauseBtn').onclick=()=>{if(state.phase==='play')togglePause();};
+$('#pauseBtn').onclick=()=>{if(state.phase==='play')openPauseMenu();};
 $('#sndBtn').onclick=()=>{AU.init();AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();AU.click();};
 $('#coachX').onclick=coachHide;
+$('#tutorialBtn').onclick=showTutorial;
+$('#introPlay').onclick=()=>{AU.init();beginGame();};
 
 /* ═══ test hook (used by tools/playtest.py) ═══ */
 /* ── share card ──────────────────────────────────────────────────────
@@ -817,6 +926,7 @@ window.__snake_debug={
       floats:state.floats.map(f=>f.t),
       boost:!!(p&&p.boosting),orbs:state.orbs.length,orbsEaten:state.orbsEaten,
       kills:state.kills,score:score(),rank:state.rank,
+      heat:heatLevel(),codes:{...cheats},
       rivals:state.rivals.map(r=>({x:+r.x.toFixed(1),y:+r.y.toFixed(1),
         len:Math.round(r.len),heading:+r.heading.toFixed(3),name:r.name})),
       rivalCount:state.rivals.length,crash:state.crash,time:+state.runTime.toFixed(2),
@@ -826,8 +936,9 @@ window.__snake_debug={
   start(){startGame();return this.state();},
   resume(){if(state.paused)togglePause();return this.state();},
   pause(){if(state.phase==='play'&&!state.paused)togglePause();return this.state();},
-  wipe(){try{localStorage.removeItem('sc_rec')}catch(e){}
-    REC={games:0,best:0,bestScore:0,orbs:0,kills:0};state.best=0;return this.state();},
+  wipe(){try{localStorage.removeItem('sc_rec');localStorage.removeItem('sc_tutorial_seen')}catch(e){}
+    REC={games:0,best:0,bestScore:0,orbs:0,kills:0};tutorialSeen=false;state.best=0;
+    cheats.goliath=cheats.ghost=cheats.frenzy=false;syncCodes();return this.state();},
   freeze(b){state.freeze=b!==false;return this.state();},
   advance(sec){advance(sec);return this.state();},
   setSpawner(b){state.spawner=b!==false;return this.state();},
@@ -857,6 +968,18 @@ resize();
 reset();
 show('#s-menu');menuHud();syncSnd();
 $('#hud').style.display='none';
+syncCodes();
+reportScene('title',REC.best);
+if(window.ArcadeSDK)ArcadeSDK.init({
+  pauseKeys:'esc',
+  pauseButton:'none',
+  onPause(){state.paused=true;},
+  onResume(){state.paused=false;},
+  onRestart(){startGame();},
+  onExit(){toMenu();},
+  onTutorial(){showTutorial();},
+  onCheat(code){return applyCheat(code);}
+});
 requestAnimationFrame(tick);
 })();
 </script>
