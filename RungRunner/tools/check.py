@@ -35,11 +35,18 @@ if "```" in src:
     fails.append("markdown fence leaked into the file")
 
 # node --check the single inline script
-bodies = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", src, re.S)
+# The 3D renderer (three.js r180 + ../lib3d/p3d.js) is vendored in this repo and mapped by one
+# import map; it must stay local (no CDN), and the game itself is still ONE inline module script.
+maps = re.findall(r"<script type=\"importmap\">(.*?)</script>", src, re.S)
+if len(maps) != 1 or re.search(r"https?:|//", maps[0]) or "../lib3d/three/" not in maps[0]:
+    fails.append("the import map must exist once and point only at the vendored ../lib3d/three/")
+if not os.path.exists(os.path.join(ROOT, "..", "lib3d", "p3d.js")):
+    fails.append("missing the shared 3D layer ../lib3d/p3d.js")
+bodies = re.findall(r"<script(?![^>]*\bsrc=)(?![^>]*importmap)[^>]*>(.*?)</script>", src, re.S)
 if len(bodies) != 1:
     fails.append(f"expected exactly ONE inline <script>, found {len(bodies)}")
 elif os.path.exists(NODE):
-    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False,
                                      encoding="utf-8") as fh:
         fh.write(bodies[0])
         tmp = fh.name

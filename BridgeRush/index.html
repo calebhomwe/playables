@@ -21,6 +21,7 @@
   html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);
     font-family:var(--text);overscroll-behavior:none;user-select:none;-webkit-user-select:none}
   canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+  #gl{background:#ffd9a0}
 
   /* HUD: bolted steel rack + a material bar, same printed language as the
      studio's other games, tuned so it survives a portrait crop. */
@@ -62,7 +63,7 @@
 
   /* screens */
   .screen{position:fixed;inset:0;display:none;place-items:center;padding:14px;z-index:10;
-          background:radial-gradient(130% 90% at 50% 0%,rgba(60,40,20,.62),rgba(10,7,3,.93));
+          background:radial-gradient(130% 90% at 50% 0%,rgba(60,40,20,.16),rgba(10,7,3,.64));
           pointer-events:auto;overflow:auto}
   .screen.on{display:grid}
   .panel{width:min(480px,100%);text-align:center;background:var(--glass);
@@ -110,6 +111,7 @@
      min-content width and rendered one or two words per line down a tall narrow column over the game.
      Give the text its own full-width line and let the kicker and Skip share the line above. */
   @media (max-width:560px){
+    #coach{bottom:calc(66px + env(safe-area-inset-bottom))}   /* clear of the arcade pause button (bottom right) */
     #coach{flex-wrap:wrap;row-gap:6px;width:min(94vw,460px);max-width:none}
     #coach .ck{order:1}
     #coach .cx{order:2;margin-left:auto}
@@ -129,6 +131,7 @@
 </style>
 </head>
 <body>
+<canvas id="gl"></canvas>
 <canvas id="cv"></canvas>
 <div class="codes-on" id="codesOn" hidden>Codes on</div>
 
@@ -197,7 +200,9 @@
   <button class="btn quiet" id="btnShare">Save the score card</button>
 </div></div>
 
-<script>
+<script type="importmap">{"imports":{"three":"../lib3d/three/three.module.min.js","three/addons/":"../lib3d/three/jsm/"}}</script>
+<script type="module">
+import {THREE,createView,makeSky,makeLights,toon,Particles,Props,Actor,loadMany,loadFrames,mat,frameMeter} from '../lib3d/p3d.js';
 (()=>{ 'use strict';
 /* ═══════════════ BRIDGE RUSH — bridge-builder racer ═══════════════
    Fully offline single file. Canvas 2D, no assets, no network.
@@ -311,8 +316,15 @@ const AU={ctx:null,on:store.get('br_snd',true),master:null,nb:null,
   over(){ [420,330,262,196].forEach((x,i)=>this.tone(x,.4,'triangle',.12,1,i*.12)); }
 };
 
-/* ── canvas + world scale. U = px per world unit, GY = deck line. ───── */
+/* ── 3D view (WebGL) + the 2D overlay canvas for popping text and sparks.
+   U = px per world unit at the runner, GY = the deck line on screen, RUN_X = the runner's
+   screen x, RY = the rival span's deck line: all refreshed from the 3D camera every frame. ── */
 const cv=$('#cv'),ctx=cv.getContext('2d');
+const V=createView($('#gl'),{fov:44,far:260,low:GFX_LOW});
+const SKY3=makeSky(V,{top:'#ffca7a',horizon:'#ffe9c2',bottom:'#ffb15e',fogNear:48,fogFar:120,sun:'#fff0c8'});
+const LIGHT=makeLights(V,{dir:[-0.35,1,0.6],shadow:12,hemi:1.1,sunI:2.4,sky:'#fff3e0',ground:'#6d5a45'});
+SKY3.u.sunDir.value.set(.6,.18,-1).normalize();
+const FM=frameMeter();
 let W=0,H=0,DPR=1,U=170,GY=0,RUN_X=0,RY=0;
 function resize(){
   DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2);
@@ -323,6 +335,7 @@ function resize(){
   GY=Math.round(H*0.76);
   RY=GY-2.5*U;
   RUN_X=clamp(W*0.30,70,W*0.46);
+  if(V.low!==GFX_LOW){ V.setLow(GFX_LOW); LIGHT.setLow(GFX_LOW); } else V.resize();
 }
 addEventListener('resize',resize);
 addEventListener('orientationchange',()=>setTimeout(resize,120));
@@ -437,6 +450,7 @@ function buildLay(){
   state.sq=.86; state.shake=Math.max(state.shake,.12);
   const x=sx(g.lad), y=sy(0);
   sparks(6,x,y,P.woodL,170,.4);
+  FXP.burst(g.lad,.1,0,8,P.woodL,{speed:3,up:3,size:.09,life:.5});
   AU.lay(state.segsLaid);
   if(g.lad>=g.x1-0.001){ g.bridged=true; state.gapsCrossed++;
     ring(x,y-2*U,P.hivis,10,220); float(x,y-1.6*U,'SPAN LOCKED',P.hivis,15); }
@@ -469,8 +483,9 @@ function sparks(n,x,y,col,spd,life){ for(let i=0;i<n;i++){ const a=rnd(0,6.2832)
   part(x,y,Math.cos(a)*s,Math.sin(a)*s-40,rnd(1.2,3),col||P.woodL,rnd(.2,life||.6),420);} }
 
 /* ── world -> screen ────────────────────────────────────────────────── */
-const sy=y=>GY-y*U;
-const sx=z=>RUN_X+(z-state.dist)*U;
+/* track -> screen through the 3D camera (the 2D sparks and numbers anchor here) */
+const sy=y=>V.project(viewX(),y,0).y;
+const sx=z=>V.project(z,0,0).x;
 function viewX(){ return state.phase==='menu'?state.menuX:state.dist; }
 function hash1(i){ const s=Math.sin(i*127.1+11.7)*43758.5453; return s-Math.floor(s); }
 function tiles(period,par,cb){
@@ -582,7 +597,7 @@ function endRun(finished){
   REC.material+=state.matCollected; REC.segs+=state.segsLaid; REC.dist+=d;
   if(finished){ REC.finishes++; if(state.place===1)REC.wins++; }
   store.set('br_rec',REC);
-  if(finished){ AU.finish(); for(let i=0;i<3;i++)ring(RUN_X+i*30,sy(2)-i*14,i%2?P.hivis:P.woodL,12,240);
+  if(finished){ AU.finish(); FXP.burst(state.dist,2.5,-1,60,P.hivis,{speed:7,up:7,size:.18,life:1.8,confetti:true}); FXP.burst(state.dist,2.5,-1,40,P.orange,{speed:7,up:7,size:.18,life:1.8,confetti:true}); for(let i=0;i<3;i++)ring(RUN_X+i*30,sy(2)-i*14,i%2?P.hivis:P.woodL,12,240);
     for(let i=0;i<26;i++)part(RUN_X+rnd(-60,60),sy(3)-rnd(0,60),rnd(-90,90),rnd(-40,90),
       rnd(2,4),i%3?P.hivis:P.orange,life2()*1.6,220); }
   else { AU.fall(); state.shake=1; state.flash=.5; }
@@ -662,6 +677,7 @@ function update(dt,force){
       m.got=true; state.material=Math.min(MAT_MAX,state.material+MAT_GAIN);
       state.matCollected++; const x=sx(m.x),y=sy(m.y);
       ring(x,y,P.hivis,9,200); sparks(9,x,y,P.woodL,220,.55);
+      FXP.burst(m.x,m.y,0,12,P.hivis,{speed:3,up:2.5,size:.1,life:.6});
       float(x,y-1.0*U,'+'+MAT_GAIN,P.hivis,15); AU.pop(state.matCollected); hud(); mats.splice(i,1); }
   }
   for(let i=cones.length-1;i>=0;i--){ const c=cones[i]; if(c.hit)continue;
@@ -673,6 +689,7 @@ function update(dt,force){
       state.stumble=.6; state.shake=Math.max(state.shake,.7); state.sq=.8;
       const x=sx(c.x),y=sy(CONE_H*.6);
       sparks(14,x,y,P.orange,300,.6); sparks(6,x,y,P.paper,220,.4); ring(x,y,P.orange,9,220);
+      FXP.burst(c.x,.6,0,16,P.orange,{speed:5,up:4,size:.12,life:.7});
       float(RUN_X,sy(state.py+1.6),cost>0?('-'+cost+' material'):'STUMBLE',P.orange,17);
       AU.hit(); hud(); }
   }
@@ -686,6 +703,7 @@ function fallIntoGap(){
   state.grounded=false; state.vy=-2;
   const g=activeGap(); const fx=g?sx(g.lad):RUN_X;
   puff(16,fx,sy(0),P.woodL,120);
+  FXP.burst(state.dist+.6,0,0,20,P.woodL,{speed:3,up:2,size:.12,life:.9});
   for(let i=0;i<10;i++)part(fx+rnd(-14,14),sy(0)+rnd(-4,4),rnd(-50,50),rnd(-90,40),
     rnd(2,4),P.grime,life2()*1.4,300);
   state.reason='fall'; endRun(false);
@@ -719,211 +737,136 @@ function updateRival(dt){
 }
 
 /* ── render ─────────────────────────────────────────────────────────── */
-const PLAYER_COL={vest:P.hivis,helmet:P.orange,shirt:P.steelD,skin:'#e7b48a',
-  far:'#6b7788',near:'#8f9fae'};
-const RIVAL_COL={vest:P.wood,helmet:P.rust,shirt:'#7a5a3a',skin:'#d8a276',
-  far:'#8a6a44',near:'#a8825a'};
-function rr(x,y,w,h,r){ ctx.beginPath();
-  if(ctx.roundRect)ctx.roundRect(x,y,w,h,Math.max(0,Math.min(r,w/2,h/2))); else ctx.rect(x,y,w,h); }
-function hash1w(i){ const s=Math.sin(i*91.3+3.1)*43758.5453; return s-Math.floor(s); }
-function drawSky(sky){
-  const g=ctx.createLinearGradient(0,-40,0,GY+60);
-  g.addColorStop(0,sky.top); g.addColorStop(.64,sky.bot); g.addColorStop(1,mix(sky.bot,sky.haze,.5));
-  ctx.fillStyle=g; ctx.fillRect(-60,-60,W+120,GY+70);
-  const hg=ctx.createRadialGradient(W*.66,GY,10,W*.66,GY,Math.max(W,H)*.7);
-  hg.addColorStop(0,withA(sky.haze,.5)); hg.addColorStop(.5,withA(sky.haze,.14)); hg.addColorStop(1,withA(sky.haze,0));
-  ctx.fillStyle=hg; ctx.fillRect(-60,-60,W+120,GY+70);
+/* ── 3D render (three.js via ../lib3d/p3d.js) ───────────────────────────────────────
+   Track space: x = distance along the race, y up. three.js: (x, y, lane) with the player's
+   span at z = 0 and the rival's parallel span behind it at z = RIVAL_Z. The camera sits
+   in front of the spans, a little behind the runner, looking down the race at 3/4.
+   Kenney CC0 models: builders (Mini Characters, baked poses), grass deck blocks, plank
+   platforms, trees and the flag (Platformer Kit), traffic cones (Car Kit). */
+const RIVAL_Z=-3.4, CHAR_S=1.55, TILE=2.0;
+let BUILDER=null, RIVAL=null, DECK=null, PLANKS=null, PICK=null, CARRYP=null, CONES=null, FLAGS=null, TREES=null, PINES=null, ROCKS=null;
+const FXP=new Particles(V.scene,380);
+const water=(()=>{ const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
+  g.fillStyle='#3fa7d6'; g.fillRect(0,0,256,256);
+  for(let i=0;i<260;i++){ g.strokeStyle='rgba(255,255,255,'+(.08+Math.random()*.18)+')'; g.lineWidth=2+Math.random()*2;
+    const x=Math.random()*256, y=Math.random()*256, w=10+Math.random()*26; g.beginPath(); g.moveTo(x,y); g.quadraticCurveTo(x+w/2,y-4,x+w,y); g.stroke(); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(30,30); return t; })();
+const sea=new THREE.Mesh(new THREE.PlaneGeometry(260,260),toon({map:water,color:'#ffffff',rim:null,transparent:false}));
+sea.rotation.x=-Math.PI/2; sea.position.y=-2.2; sea.receiveShadow=true; V.scene.add(sea);
+/* hazard stripes on every gap edge */
+const edgeTex=(()=>{ const c=document.createElement('canvas'); c.width=128; c.height=32; const g=c.getContext('2d');
+  g.fillStyle=P.ink; g.fillRect(0,0,128,32); g.fillStyle=P.hivis;
+  for(let i=-2;i<10;i++){ g.beginPath(); g.moveTo(i*16,32); g.lineTo(i*16+8,32); g.lineTo(i*16+24,0); g.lineTo(i*16+16,0); g.fill(); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; })();
+const edges=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:edgeTex}),40);
+edges.frustumCulled=false; V.scene.add(edges);
+const glow=new THREE.InstancedMesh(new THREE.RingGeometry(.3,.46,24),new THREE.MeshBasicMaterial({color:P.hivis,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide}),30);
+glow.frustumCulled=false; V.scene.add(glow);
+/* a chequered finish banner across both spans */
+const banner=(()=>{ const c=document.createElement('canvas'); c.width=256; c.height=64; const g=c.getContext('2d');
+  for(let r=0;r<2;r++)for(let k=0;k<8;k++){ g.fillStyle=(r+k)%2?P.ink:P.paper; g.fillRect(k*32,r*32,32,32); }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=THREE.RepeatWrapping; t.repeat.set(2,1);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(.9,6.6),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide,toneMapped:false}));
+  m.rotation.set(0,Math.PI/2,Math.PI/2); return m; })();
+banner.position.set(FINISH_DIST,3.6,RIVAL_Z/2); V.scene.add(banner);
+const plankTint=[new THREE.Color('#ffffff'),new THREE.Color('#ffe2b8')];
+Promise.all([loadFrames('builder','sprint',10),loadFrames('builder','jump',1),loadFrames('builder','fall',1),loadFrames('builder','idle',1),
+  loadFrames('rival','sprint',10),loadFrames('rival','jump',1),loadFrames('rival','idle',1),
+  loadMany(['block-grass-large','platform','cone','flag','tree','tree-pine','rocks'])]).then(r=>{
+  const [bs,bj,bf,bi,rs,rj,ri,m]=r;
+  BUILDER=new Actor({sprint:bs,jump:bj,fall:bf,idle:bi},{scale:CHAR_S,outline:.012}); V.scene.add(BUILDER.root);
+  RIVAL=new Actor({sprint:rs,jump:rj,idle:ri},{scale:CHAR_S*.95,outline:.012}); V.scene.add(RIVAL.root);
+  DECK=new Props(V.scene,m[0],160,{receive:true});
+  PLANKS=new Props(V.scene,m[1],120,{receive:true,outline:.01});
+  PICK=new Props(V.scene,m[1],30,{outline:.012}); CARRYP=new Props(V.scene,m[1],48);
+  CONES=new Props(V.scene,m[2],16,{outline:.015}); FLAGS=new Props(V.scene,m[3],4);
+  TREES=new Props(V.scene,m[4],40); PINES=new Props(V.scene,m[5],40); ROCKS=new Props(V.scene,m[6],40);
+  V.warm();
+}).catch(()=>{});
+function hash1b(i){ const s=Math.sin(i*127.1+11.7)*43758.5453; return s-Math.floor(s); }
+const cT=new THREE.Color();
+/* ground stretches between gaps, on a world-fixed 2 m tile grid so nothing swims */
+function deckRange(x0,x1,lane,sc){
+  for(let k=Math.floor(x0/TILE);k*TILE<x1;k++){ const a=Math.max(x0,k*TILE), b=Math.min(x1,(k+1)*TILE); if(b-a<.02)continue;
+    DECK.add(mat((a+b)/2,-1.35,lane,0,0,0,[(b-a)/2.08,1.35,sc]),((k+(lane?1:0))%2)?cT.set('#ffffff'):cT.set('#e9f7d8')); } }
+let lastT=0;
+function render(){ if(calm()){ state.shake=0; state.flash=0; }
+  const sky=skyNow(); state.frames++;
+  const now=performance.now()/1000, rdt=Math.min(.05,lastT?now-lastT:.016); lastT=now;
+  SKY3.set(sky.top,sky.bot,sky.haze,mixC(sky.bot,sky.haze)); SKY3.u.stars.value=sky.star;
+  LIGHT.hemi.intensity=lerp(1.1,.6,sky.c/4); LIGHT.sun.intensity=lerp(2.4,1.2,sky.c/4);
+  const vx=viewX();
+  /* camera: in front of the spans, trailing the runner, framing the next gap */
+  /* wide screens: a 3/4 side view down the race; tall phones: swing round behind the runner */
+  const pt=clamp((1.25-V.camera.aspect)/.7,0,1), sh=state.shake*state.shake;
+  V.camera.position.set(vx+lerp(-2.6,-8.5,pt)+(Math.random()-.5)*sh*.5,lerp(6.4,9,pt)+(Math.random()-.5)*sh*.4,lerp(11.5,1.2,pt));
+  V.camera.lookAt(vx+lerp(4.2,4,pt),.2,lerp(RIVAL_Z*.35,RIVAL_Z*.45,pt));
+  LIGHT.follow(vx+3,0,RIVAL_Z/2);
+  SKY3.update(now);
+  sea.position.x=vx; water.offset.set((vx/8.6)%1+now*.01,now*.02%1);
+  /* project() is ready now: refresh the screen anchors the 2D effects use */
+  const p0=V.project(vx,0,0); RUN_X=p0.x; GY=p0.y; U=p0.s; RY=V.project(rival.dist,0,RIVAL_Z).y;
+  if(!BUILDER){ V.render(); return; }
+  /* the deck on both spans, with gaps cut out, and the planks laid over them */
+  DECK.begin(); PLANKS.begin(); let ne=0;
+  const a0=vx-14, a1=vx+AHEAD+6;
+  for(const lane of [0,RIVAL_Z]){ let from=a0;
+    for(const g of gaps){ if(g.x1<a0||g.x0>a1)continue;
+      if(g.x0>from)deckRange(from,g.x0,lane,lane?1:1.1);
+      from=Math.max(from,g.x1);
+      const lad=lane?g.rlad:g.lad;
+      for(let x=g.x0;x<lad-.01;x+=SEG_W){ const b=Math.min(lad,x+SEG_W);
+        PLANKS.add(mat((x+b)/2,-.22,lane,0,0,Math.sin(x*3)*.02,[(b-x)*.96,1.1,lane?1.9:2.2]),plankTint[Math.round(x/SEG_W)%2]); }
+      if(!lane&&ne<38){ for(const ex of [g.x0,g.x1]){ edges.setMatrixAt(ne++,mat(ex+(ex===g.x0?-.25:.25),.012,0,0,-Math.PI/2,0,[.5,2.3,1])); } } }
+    if(from<a1)deckRange(from,a1,lane,1.1); }
+  edges.count=ne; edges.instanceMatrix.needsUpdate=true;
+  DECK.end(); PLANKS.end();
+  /* floating planks to grab (hover + spin) and cones */
+  PICK.begin(); let ng=0;
+  for(const m of mats){ if(m.got||m.x<a0||m.x>a1)continue; const y=m.y+Math.sin(state.time*3+m.seed)*.06;
+    PICK.add(mat(m.x,y-.1,0,state.time*1.6+m.seed,0,.15*Math.sin(state.time*1.6+m.seed),[.9,1.4,.36]),cT.set('#ffd9a0'));
+    if(ng<30)glow.setMatrixAt(ng++,mat(m.x,.02,0,0,-Math.PI/2,0,1+.12*Math.sin(state.time*4+m.seed))); }
+  glow.count=ng; glow.instanceMatrix.needsUpdate=true; PICK.end();
+  CONES.begin(); for(const c of cones){ if(c.hit||c.x<a0||c.x>a1)continue; CONES.add(mat(c.x,0,0,c.seed,0,0,1.65)); } CONES.end();
+  FLAGS.begin(); FLAGS.add(mat(FINISH_DIST,0,.9,-.4,0,0,4)); FLAGS.add(mat(FINISH_DIST,0,RIVAL_Z-.9,-.4,0,0,4)); FLAGS.end();
+  /* islands with trees beyond the rival span, rocks in front */
+  TREES.begin(); PINES.begin(); ROCKS.begin();
+  const z0=Math.floor((vx-20)/7), z1=Math.floor((vx+AHEAD+10)/7);
+  for(let i=z0;i<=z1;i+=(V.low?2:1)){ const h=hash1b(i), x=i*7+h*4;
+    DECK.add(mat(x,-2.3,RIVAL_Z-6-h*6,h,0,0,[1.4+h,1.1,1.4+h]),cT.set('#ffffff'));
+    (h>.5?PINES:TREES).add(mat(x,-1.2,RIVAL_Z-6-h*6,h*9,0,0,1.6+h*.6));
+    if(h<.35)ROCKS.add(mat(x+2,-2.3,4+h*3,h*9,0,0,2+h)); }
+  DECK.end(); TREES.end(); PINES.end(); ROCKS.end();
+  /* the builders */
+  const dead=state.phase==='over'&&!state.finished, sq=state.sq;
+  const drop=dead?Math.min(3,state.deadT*state.deadT*6):0;
+  BUILDER.root.position.set(vx,state.py-drop,0); BUILDER.root.rotation.set(dead?Math.min(1.2,state.deadT*2):0,Math.PI/2,0);
+  BUILDER.body.scale.set(CHAR_S*(1+(1-sq)*.5),CHAR_S*sq,CHAR_S*(1+(1-sq)*.5));
+  const blocked=state.phase==='play'&&atGap()&&state.dist>=frontierP()-.03;
+  if(dead)BUILDER.pose('fall',0); else if(!state.grounded)BUILDER.pose('jump',0);
+  else if(blocked||state.phase==='over')BUILDER.pose('idle',0); else BUILDER.pose('sprint',state.runPh/6.2832);
+  const rb=rival.finishT!=null;
+  RIVAL.root.position.set(rival.dist,0,RIVAL_Z); RIVAL.root.rotation.y=Math.PI/2;
+  const rStop=!rb&&(()=>{ const g=activeGapFor(rival.dist); return g&&g.rlad<g.x1-.001&&rival.dist>=g.rlad-.05; })();
+  RIVAL.pose(rb||rStop?'idle':'sprint',(state.runPh+1.4)/6.2832);
+  /* Bridge Race's stack of planks on the back: one per plank in hand */
+  CARRYP.begin();
+  const nm=Math.min(state.material,22);
+  for(let i=0;i<nm;i++)CARRYP.add(mat(vx-.34,state.py-drop+.55+i*.14,0,Math.PI/2,0,Math.sin(state.runPh+i*.3)*.02*i,[.62,.7,.36]),cT.set(i%2?'#ffd9a0':'#ffffff'));
+  const rn=rb?0:6+Math.round(3+3*Math.sin(state.time*.4+rival.seed));
+  for(let i=0;i<rn;i++)CARRYP.add(mat(rival.dist-.33,.55+i*.14,RIVAL_Z,Math.PI/2,0,0,[.6,.7,.34]),cT.set(i%2?'#f3b089':'#ffd6c0'));
+  CARRYP.end();
+  FXP.update(rdt);
+  V.render(); FM.tick(performance.now());
+  /* 2D overlay */
+  ctx.setTransform(DPR,0,0,DPR,0,0); ctx.clearRect(0,0,W,H);
+  drawSpeedLines(); drawFX();
+  if(state.flash>0){ ctx.fillStyle=withA(state.finished?P.hivis:'#ffffff',Math.min(.4,state.flash*.38)); ctx.fillRect(0,0,W,H); }
+  drawVignette();
 }
-function drawStars(sky){
-  if(sky.star<=.02)return;
-  const span=W*1.35; ctx.save();
-  for(let i=0;i<STAR_N;i++){ const s=STARS[i];
-    const x=((s.x*span-viewX()*(2.2+s.s*1.4))%span+span*2)%span-W*.18;
-    const y=s.y*GY*.82, tw=.45+.55*Math.sin(state.time*2.2+s.p);
-    ctx.globalAlpha=sky.star*tw*(1-y/GY*.5);
-    ctx.fillStyle=(i%9===0)?P.hivis:P.paper;
-    ctx.fillRect(x,y,s.s*(1.1+tw*.5),s.s*(1.1+tw*.5)); }
-  ctx.restore();
-}
-/* far skyline of gantries + tower cranes, in the haze */
-function drawCranes(sky){
-  const base=GY+2, far=mix(sky.far,'#000000',.28);
-  tiles(6.2,.14,(x,i)=>{
-    const h1=(.9+hash1w(i*3+1)*1.5)*U, w1=(1.1+hash1w(i*7+2)*1.4)*U;
-    ctx.fillStyle=withA(far,.9); ctx.fillRect(x-w1*.5,base-h1,w1,h1);
-    if(hash1w(i*11+5)>.52){ /* tower crane */
-      const ch=(2.4+hash1w(i*13+3)*1.3)*U;
-      ctx.fillStyle=withA(far,.9); ctx.fillRect(x-2,base-ch,4,ch);
-      ctx.fillRect(x-1.6*U,base-ch,3.4*U,4);
-      ctx.strokeStyle=withA(far,.85); ctx.lineWidth=3;
-      ctx.beginPath(); ctx.moveTo(x+1.6*U,base-ch); ctx.lineTo(x+1.6*U,base-ch+.5*U); ctx.stroke(); }
-    if(hash1w(i*17+8)>.6){ ctx.fillStyle=withA(P.rust,.5+.4*Math.sin(state.time*1.6+i));
-      ctx.fillRect(x-2,base-h1-.1*U,4,4); }
-  });
-}
-/* nearer scaffolding: a lattice of steel frames just behind the deck */
-function drawScaffold(sky){
-  const base=GY+1, sil=mix(sky.near,'#000000',.2);
-  tiles(3.0,.5,(x,i)=>{
-    const h=(1.3+hash1w(i*5+4)*1.6)*U, w=1.5*U;
-    ctx.strokeStyle=withA(sil,.85); ctx.lineWidth=Math.max(2,.05*U);
-    ctx.beginPath(); ctx.moveTo(x-w*.5,base); ctx.lineTo(x-w*.5,base-h);
-    ctx.moveTo(x+w*.5,base); ctx.lineTo(x+w*.5,base-h); ctx.stroke();
-    ctx.lineWidth=Math.max(1.4,.03*U);
-    for(let k=1;k<=2;k++){ const yy=base-h*k/2.6;
-      ctx.beginPath(); ctx.moveTo(x-w*.5,yy); ctx.lineTo(x+w*.5,yy); ctx.stroke(); }
-    ctx.beginPath(); ctx.moveTo(x-w*.5,base-h); ctx.lineTo(x+w*.5,base-h*.7);
-    ctx.moveTo(x+w*.5,base-h); ctx.lineTo(x-w*.5,base-h*.7); ctx.stroke();
-  });
-}
-/* the rival's parallel span, set back and up so it reads as a second track */
-function drawRivalLane(sky){
-  const a=-60,b=W+60;
-  tiles(3.4,.5,(x)=>{ ctx.strokeStyle=withA(P.steelD,.22); ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(x,RY+9); ctx.lineTo(x,GY); ctx.stroke(); });
-  ctx.fillStyle=withA(sky.near,.6); ctx.fillRect(a,RY+2,b-a,7);
-  ctx.fillStyle=withA(P.steel,.55); ctx.fillRect(a,RY,b-a,2);
-  for(let i=0;i<gaps.length;i++){ const g=gaps[i]; const x0=sx(g.x0),x1=sx(g.rlad);
-    if(x1<=x0)continue; if(x1<-40||x0>W+40)continue;
-    ctx.fillStyle=withA(P.wood2,.7); ctx.fillRect(x0,RY,x1-x0,9);
-    ctx.fillStyle=withA(P.woodL,.55); ctx.fillRect(x0,RY,x1-x0,2); }
-}
-function hazardEdge(x,y,dir){
-  ctx.save(); ctx.beginPath(); ctx.rect(x+(dir<0?-26:0),y,26,16); ctx.clip();
-  ctx.fillStyle=withA(P.ink,.85); ctx.fillRect(x+(dir<0?-26:0),y,26,16);
-  ctx.strokeStyle=P.hivis; ctx.lineWidth=4;
-  for(let i=-3;i<8;i++){ const sx0=x+(dir<0?-26:0)+i*11;
-    ctx.beginPath(); ctx.moveTo(sx0,y+16); ctx.lineTo(sx0+10,y); ctx.stroke(); }
-  ctx.restore();
-}
-function drawBridge(x0,x1){
-  const a=sx(x0), b=sx(x1), y=sy(0), span=b-a;
-  const n=Math.max(1,Math.round(span/(SEG_W*U)));
-  for(let i=0;i<n;i++){ const px=a+span*(i/n), w=span/n;
-    ctx.fillStyle=(i%2)?P.wood:P.wood2; rr(px+1.5,y,w-3,12,2); ctx.fill();
-    ctx.strokeStyle=withA(P.ink,.55); ctx.lineWidth=1.4; ctx.stroke();
-    ctx.fillStyle=withA(P.woodL,.5); ctx.fillRect(px+2,y+2,w-4,2); }
-  ctx.fillStyle=P.woodL; ctx.fillRect(a,y-1.5,span,3);
-  ctx.strokeStyle=withA(P.ink,.35); ctx.lineWidth=1; ctx.strokeRect(a,y-1.5,span,3);
-}
-function drawDeck(sky){
-  const gy=sy(0);
-  ctx.fillStyle=sky.deck; ctx.fillRect(-60,gy,W+120,H-gy+80);
-  const gg=ctx.createLinearGradient(0,gy,0,gy+3.2*U);
-  gg.addColorStop(0,withA(P.grime,.05)); gg.addColorStop(1,withA('#000000',.35));
-  ctx.fillStyle=gg; ctx.fillRect(-60,gy,W+120,3.2*U);
-  ctx.fillStyle=withA(P.wood,.4); ctx.fillRect(-60,gy-1,W+120,2);
-  ctx.fillStyle=withA('#000000',.3); ctx.fillRect(-60,gy+1,W+120,5);
-  for(let i=0;i<gaps.length;i++){ const g=gaps[i];
-    const a=sx(g.x0), b=sx(g.x1);
-    if(b<-40||a>W+40)continue;
-    const vg=ctx.createLinearGradient(0,gy,0,H);
-    vg.addColorStop(0,mix(sky.bot,'#000000',.4)); vg.addColorStop(1,'#0c0906');
-    ctx.fillStyle=vg; ctx.fillRect(a,gy,b-a,H-gy+80);
-    hazardEdge(a,gy,-1); hazardEdge(b,gy,1);
-    if(g.lad>g.x0+0.01)drawBridge(g.x0,g.lad);
-  }
-}
-function drawMats(){
-  for(let i=0;i<mats.length;i++){ const m=mats[i]; if(m.got)continue;
-    const x=sx(m.x); if(x<-40||x>W+40)continue;
-    const y=sy(m.y)+Math.sin(state.time*3+m.seed)*.06*U;
-    const gl=ctx.createRadialGradient(x,y,2,x,y,.85*U);
-    gl.addColorStop(0,withA(P.hivis,.28)); gl.addColorStop(1,withA(P.hivis,0));
-    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(x,y,.85*U,0,6.2832); ctx.fill();
-    ctx.save(); ctx.translate(x,y); ctx.rotate(Math.sin(state.time*1.6+m.seed)*.14);
-    const w=.62*U,h=.36*U;
-    ctx.fillStyle=P.wood; rr(-w/2,-h/2,w,h,3); ctx.fill();
-    ctx.strokeStyle=withA(P.ink,.6); ctx.lineWidth=1.6; ctx.stroke();
-    ctx.fillStyle=withA(P.woodL,.85); ctx.fillRect(-w/2+3,-h/2+3,w-6,h/2-4);
-    ctx.fillStyle=withA(P.wood2,.75); ctx.fillRect(-w/2+3,1,w-6,h/2-4);
-    ctx.restore(); }
-}
-function drawCones(){
-  for(let i=0;i<cones.length;i++){ const c=cones[i]; if(c.hit)continue;
-    const x=sx(c.x); if(x<-40||x>W+40)continue;
-    const b=sy(0), h=CONE_H*U, w=CONE_HW*U;
-    ctx.fillStyle=withA('#000000',.32); ctx.beginPath(); ctx.ellipse(x,b+2,w*1.2,w*.3,0,0,6.2832); ctx.fill();
-    ctx.fillStyle=P.orange; ctx.beginPath();
-    ctx.moveTo(x-w*.5,b); ctx.lineTo(x,b-h); ctx.lineTo(x+w*.5,b); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle=withA(P.ink,.5); ctx.lineWidth=1.6; ctx.stroke();
-    ctx.fillStyle=P.paper; ctx.beginPath();
-    ctx.moveTo(x-w*.34,b-h*.42); ctx.lineTo(x+w*.34,b-h*.42);
-    ctx.lineTo(x+w*.28,b-h*.58); ctx.lineTo(x-w*.28,b-h*.58); ctx.closePath(); ctx.fill();
-    ctx.fillStyle=P.orange; rr(x-w*.72,b-5,w*1.44,6,2); ctx.fill();
-    ctx.strokeStyle=withA(P.ink,.4); ctx.lineWidth=1.4; ctx.stroke(); }
-}
-function flagpole(x,base,poleH){
-  ctx.strokeStyle=P.steelL; ctx.lineWidth=4;
-  ctx.beginPath(); ctx.moveTo(x,base); ctx.lineTo(x,base-poleH); ctx.stroke();
-  ctx.fillStyle=P.rust; ctx.beginPath(); ctx.arc(x,base-poleH,4,0,6.2832); ctx.fill();
-  const fw=1.1*U, fh=.7*U, fx=x+3, fy=base-poleH;
-  const cw=fw/4, ch=fh/3;
-  for(let r=0;r<3;r++)for(let c=0;c<4;c++){ ctx.fillStyle=((r+c)%2)?P.ink:P.paper;
-    ctx.fillRect(fx+c*cw,fy+r*ch,cw,ch); }
-  ctx.strokeStyle=withA(P.ink,.6); ctx.lineWidth=1.5; ctx.strokeRect(fx,fy,fw,fh);
-}
-function drawFinish(){
-  const x=sx(FINISH_DIST); if(x>-120&&x<W+140){ flagpole(x,sy(0),3.5*U); }
-  const xr=sx(FINISH_DIST); if(xr>-120&&xr<W+140){ flagpole(xr,RY,1.7*U); }
-}
-function limb(L,a,b,c,col,w){ ctx.lineCap='round'; ctx.lineJoin='round';
-  ctx.strokeStyle='#14100c'; ctx.lineWidth=w*1.28;
-  ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.stroke();
-  ctx.strokeStyle=col; ctx.lineWidth=w;
-  ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.stroke(); }
-function builder(L,col,dead,deadT,ph,sq){
-  sq=(sq===undefined)?state.sq:sq; ph=(ph===undefined)?state.runPh:ph;
-  const s=Math.sin(ph), s2=Math.sin(ph+3.1416);
-  const a1=dead?0:-s, a2=dead?0:-s2;
-  ctx.save();
-  ctx.scale(1+(1-sq)*.5,sq);
-  if(dead){ const t=clamp(deadT*1.4,0,1); ctx.translate(-.12*L*t,.12*L*t); ctx.rotate(-1.15*t); }
-  /* planks on the back */
-  ctx.fillStyle=P.wood; rr(-.52*L,-1.02*L,.5*L,.12*L,.03*L); ctx.fill();
-  ctx.strokeStyle=withA(P.ink,.5); ctx.lineWidth=1.2; ctx.stroke();
-  ctx.fillStyle=P.wood2; rr(-.52*L,-.88*L,.44*L,.1*L,.03*L); ctx.fill(); ctx.stroke();
-  /* far limbs */
-  limb(L,[-.06*L,-.5*L],[-.3*L,-.28*L],[-.2*L,-.05*L],col.far,.13*L);
-  limb(L,[.06*L,-.98*L],[.02*L-.1*L*a2,-.8*L],[.02*L+.32*L*a2,-.7*L],col.far,.12*L);
-  /* torso + hi-vis vest */
-  ctx.fillStyle=col.shirt; rr(-.21*L,-1.0*L,.43*L,.57*L,.12*L); ctx.fill();
-  ctx.strokeStyle=withA(P.ink,.45); ctx.lineWidth=1.4; ctx.stroke();
-  ctx.fillStyle=col.vest; rr(-.18*L,-.96*L,.35*L,.44*L,.09*L); ctx.fill();
-  ctx.fillStyle=withA(P.ink,.5); ctx.fillRect(-.18*L,-.78*L,.35*L,.05*L);
-  ctx.fillRect(-.18*L,-.64*L,.35*L,.05*L);
-  /* near limbs */
-  limb(L,[.02*L,-.5*L],[.3*L,-.32*L],[.16*L,-.05*L],col.near,.13*L);
-  limb(L,[.08*L,-.98*L],[.02*L-.1*L*a1,-.8*L],[.02*L+.34*L*a1,-.68*L],col.near,.12*L);
-  /* head + hard hat */
-  ctx.fillStyle=col.skin; ctx.beginPath(); ctx.arc(.06*L,-1.16*L,.17*L,0,6.2832); ctx.fill();
-  ctx.fillStyle=col.helmet; ctx.beginPath(); ctx.arc(.06*L,-1.2*L,.19*L,Math.PI,0); ctx.fill();
-  ctx.fillRect(-.15*L,-1.22*L,.42*L,.06*L);
-  ctx.strokeStyle=withA(P.ink,.4); ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.arc(.06*L,-1.2*L,.19*L,Math.PI,0); ctx.stroke();
-  ctx.restore();
-}
-function drawPlayer(){
-  const L=U, gy=sy(state.py), air=clamp(state.py/2.2,0,1);
-  ctx.save(); ctx.fillStyle=withA('#000000',.34*(1-air*.6));
-  ctx.beginPath(); ctx.ellipse(RUN_X+air*.3*L,sy(0)+3,.34*L*(1-air*.2),.08*L,0,0,6.2832); ctx.fill(); ctx.restore();
-  ctx.save(); ctx.translate(RUN_X,gy);
-  builder(L,PLAYER_COL,state.phase==='over'&&!state.finished,state.deadT);
-  if(state.buildHold&&state.phase==='play'&&atGap()){ /* hammer swing read */
-    ctx.strokeStyle=P.steelL; ctx.lineWidth=3; ctx.lineCap='round';
-    const sw=Math.sin(state.time*30)*.5;
-    ctx.beginPath(); ctx.moveTo(.1*L,-.8*L); ctx.lineTo(.34*L,-.8*L-.2*L*sw); ctx.stroke(); }
-  ctx.restore();
-}
-function drawRival(){
-  const L=U*.82, rx=sx(rival.dist); if(rx<-90||rx>W+90)return;
-  ctx.save(); ctx.globalAlpha=.96; ctx.translate(rx,RY);
-  ctx.fillStyle=withA('#000000',.28); ctx.beginPath(); ctx.ellipse(0,3,.3*L,.07*L,0,0,6.2832); ctx.fill();
-  builder(L,RIVAL_COL,rival.finishT!=null,0,state.runPh+1.4,.98);
-  ctx.restore();
-}
+function mixC(a,b){ return mix(a,b,.5); }
 function drawSpeedLines(){
-  if(state.aheadT<=.01)return;
+  if(state.aheadT<=.01||calm())return;
   ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.lineCap='round';
   ctx.strokeStyle=withA(P.paper,.85);
   const span=W+520;
@@ -942,33 +885,17 @@ function drawFX(){
       ctx.arc(p.x,p.y,Math.max(.6,p.r*a),0,6.2832); ctx.fill(); } }
   for(let i=0;i<floats.length;i++){ const t=floats[i], a=clamp(1-t.t/t.life,0,1);
     const y=t.y-t.t*58, pop=1+Math.max(0,.15-t.t)*2.4;
-    ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center';
+    ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center'; ctx.lineJoin='round';
     ctx.font='800 '+Math.round(t.size*pop)+'px '+DFONT;
-    ctx.lineWidth=4.5; ctx.strokeStyle=withA(P.ink,.8); ctx.strokeText(t.txt,t.x,y);
+    ctx.lineWidth=5; ctx.strokeStyle=withA(P.ink,.8); ctx.strokeText(t.txt,t.x,y);
     ctx.fillStyle=t.col; ctx.fillText(t.txt,t.x,y); ctx.restore(); }
 }
 function drawVignette(){
-  const g=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.36,W*.5,H*.5,Math.max(W,H)*.78);
-  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.5)');
+  const g=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.4,W*.5,H*.5,Math.max(W,H)*.8);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,.28)');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 }
-function drawScan(){ ctx.save(); ctx.fillStyle='rgba(20,14,8,.09)';
-  for(let y=0;y<H;y+=6)ctx.fillRect(0,y+.5,W,1); ctx.restore(); }
-function render(){ if(calm()){ state.shake=0; state.flash=0; }
-  const sky=skyNow(); state.frames++;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  const sh=state.shake*state.shake;
-  const ox=(Math.random()-.5)*sh*26, oy=(Math.random()-.5)*sh*26;
-  ctx.save(); ctx.translate(ox,oy);
-  drawSky(sky); drawStars(sky); drawCranes(sky); drawScaffold(sky);
-  drawRivalLane(sky); drawDeck(sky);
-  drawMats(); drawCones(); drawFinish();
-  drawRival(); drawPlayer(); drawSpeedLines(); drawFX();
-  if(state.flash>0){ ctx.fillStyle=withA(state.finished?P.hivis:'#ffffff',Math.min(.42,state.flash*.4));
-    ctx.fillRect(-80,-80,W+160,H+160); }
-  ctx.restore();
-  drawVignette(); drawScan();
-}
+
 let last=0;
 /* ── music bed ───────────────────────────────────────────────────
    One plain <audio> loop (audio/bed.mp3). Built lazily on the first real user

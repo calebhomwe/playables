@@ -1,5 +1,14 @@
 # CROWD CLASH — specification
 
+> **3D rebuild (2026-09).** The game now renders in real 3D with three.js r180, vendored with
+> the shared 3D layer in `../lib3d/` (`p3d.js`: toon ramp + rim light, inverted-hull outlines,
+> a gradient sky with matching fog, a soft-shadow sun, instanced Kenney CC0 models, see
+> `../LICENSES.md`). The rules, numbers, scoring, saves and debug hook below are unchanged:
+> the simulation still runs in the same track space and only the renderer and camera changed.
+> Because ES modules and GLB models cannot load from `file://`, play it over HTTP:
+> `node serve.js` (serves the repo root) or any static server at the repo root.
+> Graphics Low = 1x pixel ratio, no shadow pass, fewer props.
+
 Game 3 of the Playables pack. A single-file, fully offline Canvas 2D
 hyper-casual **crowd-runner** (genre ref: "Tiny Run 3D" / crowd multiplier).
 
@@ -75,11 +84,11 @@ gate spacing, hazard spacing, and how nasty the gate arithmetic is.
 |---|---|---|
 | `CROWD0` | 8 | the crowd you start every run with |
 | `CROWD_MAX` | 999 | hard cap |
-| `VISIBLE_CROWD` | 56 | reusable character slots — the pool never reallocates |
+| `VISIBLE_CROWD` | 150 | reusable character slots (instanced runners) — the pool never reallocates |
 | `CLUMP_K` | 0.44 | clump tightness (radius law below) |
 
 `clumpR(n) = min(4.3, 0.42*sqrt(n) + 0.42)` — the clump grows with the square
-root of the count, so **a crowd of 200 is a blob, not a screen-filler.** The 56
+root of the count, so **a crowd of 200 is a blob, not a screen-filler.** The 150
 visible members occupy a golden-angle spiral (`slotOf`, 2.399963 rad) inside that
 radius, so the pack looks organic at every size while the *number* keeps growing.
 
