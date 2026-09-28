@@ -810,7 +810,9 @@ addEventListener('keyup',e=>{
   if(k==='Shift'||k===' ')IN.boost=false;});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&state.phase==='play'&&!state.paused){
-    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){ try{ArcadeSDK.pause();}catch(e){ togglePause(); } }
+    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback&&typeof ArcadeSDK.pause==='function'){
+      try{ArcadeSDK.pause();}catch(e){ togglePause(); }
+    }
     else togglePause();
   }});
 $('#play').onclick=()=>{if(!tutorialSeen){showTutorial();return;}startGame();};

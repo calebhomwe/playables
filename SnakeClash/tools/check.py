@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NODE = r"C:\Users\caleb\nodejs\node-v24.18.0-win-x64\node.exe"
@@ -19,6 +20,29 @@ path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")
 src = open(path, encoding="utf-8").read()
 fails, warns = [], []
 SDK = "https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"
+
+
+class ScriptParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_head = False
+        self.scripts = []
+        self.head_scripts = []
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag == "head":
+            self.in_head = True
+            return
+        if tag == "script":
+            src = dict(attrs).get("src")
+            self.scripts.append(src)
+            if self.in_head:
+                self.head_scripts.append(src)
+
+    def handle_endtag(self, tag):
+        if tag.lower() == "head":
+            self.in_head = False
 
 if not src.lstrip().startswith("<!DOCTYPE"):
     fails.append("does not start with <!DOCTYPE>")
@@ -56,11 +80,12 @@ for tok in ("cdn.", "unpkg", "jsdelivr", "googleapis", "@import url(",
             "fetch(", "XMLHttpRequest", "new WebSocket", "importScripts"):
     if tok in src:
         fails.append(f"network API / remote asset token: {tok}")
-scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)[\"'][^>]*><\s*/\s*script\s*>", src, re.I)
+parser = ScriptParser()
+parser.feed(src)
+scripts = [s for s in parser.scripts if s]
 if scripts != [SDK]:
     fails.append(f"unexpected external scripts: {scripts!r}")
-head = re.search(r"<head>(.*?)</head>", src, re.S | re.I)
-if not head or not re.search(rf"^\s*<meta charset=.*?<script src=[\"']{re.escape(SDK)}[\"']><\s*/\s*script\s*>", head.group(1), re.S | re.I):
+if parser.head_scripts[:1] != [SDK]:
     fails.append("Arcade SDK is not the first <script> in <head>")
 if re.search(r"<link[^>]+href=[\"']https?:", src):
     fails.append("remote <link> stylesheet")
