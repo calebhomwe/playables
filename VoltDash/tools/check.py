@@ -56,11 +56,11 @@ for tok in ("cdn.", "unpkg", "jsdelivr", "googleapis", "@import url(",
             "fetch(", "XMLHttpRequest", "new WebSocket", "importScripts"):
     if tok in src:
         fails.append(f"network API / remote asset token: {tok}")
-scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)[\"'][^>]*></script\s*>", src, re.I)
+scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)[\"'][^>]*><\s*/\s*script\s*>", src, re.I)
 if scripts != [SDK]:
     fails.append(f"unexpected external scripts: {scripts!r}")
 head = re.search(r"<head>(.*?)</head>", src, re.S | re.I)
-if not head or not re.search(rf"^\s*<meta charset=.*?<script src=[\"']{re.escape(SDK)}[\"']></script\s*>", head.group(1), re.S | re.I):
+if not head or not re.search(rf"^\s*<meta charset=.*?<script src=[\"']{re.escape(SDK)}[\"']><\s*/\s*script\s*>", head.group(1), re.S | re.I):
     fails.append("Arcade SDK is not the first <script> in <head>")
 if re.search(r"<link[^>]+href=[\"']https?:", src):
     fails.append("remote <link> stylesheet")

@@ -1206,7 +1206,10 @@ addEventListener('keyup',e=>{
   if(k==='ArrowDown'||k==='s'||k==='S')setHold(false);
 });
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused&&(!window.ArcadeSDK||window.ArcadeSDK.__fallback))togglePause(true);
+  if(document.hidden&&state.phase==='play'&&!state.paused){
+    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){ try{ArcadeSDK.pause();}catch(e){ togglePause(true); } }
+    else togglePause(true);
+  }
 });
 $('#play').onclick=()=>{ AU.init(); if(!tutorialSeen){ showTutorial(); return; } startRun(); };
 $('#again').onclick=()=>{ AU.init(); startRun(); };

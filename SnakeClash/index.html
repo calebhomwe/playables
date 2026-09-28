@@ -809,7 +809,10 @@ addEventListener('keyup',e=>{
   if(k==='ArrowRight'||k==='d'||k==='D')IN.right=false;
   if(k==='Shift'||k===' ')IN.boost=false;});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&state.phase==='play'&&!state.paused&&(!window.ArcadeSDK||window.ArcadeSDK.__fallback))togglePause();});
+  if(document.hidden&&state.phase==='play'&&!state.paused){
+    if(window.ArcadeSDK&&!window.ArcadeSDK.__fallback){ try{ArcadeSDK.pause();}catch(e){ togglePause(); } }
+    else togglePause();
+  }});
 $('#play').onclick=()=>{if(!tutorialSeen){showTutorial();return;}startGame();};
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
 $('#again').onclick=()=>startGame();
