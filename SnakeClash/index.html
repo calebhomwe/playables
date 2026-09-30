@@ -836,8 +836,6 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause();});
 $('#play').onclick=()=>startGame();
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
-$('#again').onclick=()=>startGame();
-$('#menu2').onclick=()=>toMenu();
 $('#menu3').onclick=()=>toMenu();
 $('#sndBtn').onclick=()=>{AU.init();AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();AU.click();};
 $('#coachX').onclick=coachHide;
