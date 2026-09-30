@@ -39,7 +39,9 @@
       box-shadow:inset 0 0 0 1.5px var(--line),0 6px 12px rgba(0,0,0,.4)}
   .ic:active{transform:scale(.94)}
   /* first-run coach: parchment strip, short, stepped, skippable */
-  #coach{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  #boostBtn{display:none;position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:15;width:96px;height:96px;border-radius:50%;border:0;color:#fff3d2;font:800 16px/1 var(--display);letter-spacing:.08em;background:radial-gradient(circle at 35% 28%,#ffb04a,#e0641a 60%,#8a3208);box-shadow:0 0 0 3px #4b2e10,0 0 0 5px #e6bb55,0 8px 18px rgba(0,0,0,.5);touch-action:none;-webkit-user-select:none;user-select:none}
+  #boostBtn.on{display:block}#boostBtn:active,#boostBtn.held{transform:scale(.94);filter:brightness(1.2)}
+  #coach{position:fixed;left:50%;top:calc(84px + env(safe-area-inset-top));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
         color:#4a2f17;border-radius:16px;padding:9px 12px;
         background-color:#f3e2b3;background-image:linear-gradient(180deg,rgba(255,250,232,.55),rgba(214,170,96,.18)),var(--pz-paper);background-blend-mode:normal,overlay;background-size:auto,220px;
@@ -114,6 +116,7 @@
   </div>
 </div>
 
+<button id="boostBtn" type="button" aria-label="Boost (hold)">BOOST</button>
 <div id="coach" role="status" aria-live="polite">
   <span class="ck">Tip</span>
   <span class="ct" id="coachTxt"></span>
@@ -271,7 +274,7 @@ const cv=$('#cv'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,vig=null;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));
-  ctx.setTransform(DPR,0,0,DPR,0,0);state.zoom=clamp(Math.min(W,H)/VIEW,.5,1.9);
+  ctx.setTransform(DPR,0,0,DPR,0,0);state.zoom=clamp(Math.min(W,H)/(Math.min(W,H)<600?480:VIEW),.5,1.9);
   const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.32,W/2,H/2,Math.max(W,H)*.78);
   g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.5)');vig=g;}
 
@@ -361,6 +364,7 @@ const state={phase:'menu',paused:false,freeze:false,frames:0,time:0,zoom:1,
   orbsEaten:0,kills:0,shake:0,runTime:0,rank:1,best:REC.best,crash:null,
   pointer:{x:0,y:0,on:false},spawner:true,spawnT:0,boostAcc:0};
 const IN={left:false,right:false,boost:false};
+const TOUCH=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart' in window);
 
 const camX=()=>{const h=W/(2*state.zoom),c=state.player?state.player.x:ARENA/2;
   return h>=ARENA/2?ARENA/2:clamp(c,h,ARENA-h);};
@@ -645,6 +649,7 @@ function drawArena(){
   const vx0=Math.max(0,VB.x0-8),vy0=Math.max(0,VB.y0-8),vx1=Math.min(ARENA,VB.x1+8),vy1=Math.min(ARENA,VB.y1+8);
   ctx.save();ctx.beginPath();ctx.rect(vx0,vy0,vx1-vx0,vy1-vy0);ctx.clip();
   ctx.fillStyle=floorPat||LOOK.arena.ink;ctx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);
+  ctx.fillStyle='rgba(255,236,170,.13)';ctx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);
   drawDecor();
   /* the wall: a cobbled stone rim with a shadow on the grass and a lit top edge */
   ctx.save();
@@ -764,9 +769,9 @@ function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
 function maybeCoach(){
   if(state.phase!=='play'||state.paused||coachEl.classList.contains('on')||hintStep>=2)return;
   if(hintStep===0){ hintStep=1; store.set('sc_hint',1);
-    coachShow('Steer','<b>Move the mouse</b> (or <b>\u2190 \u2192</b>) to aim \u2014 chase the fruit',6); }
+    coachShow('Steer',TOUCH?'<b>Drag your finger</b> to steer \u2014 chase the fruit':'<b>Move the mouse</b> (or <b>\u2190 \u2192</b>) to aim \u2014 chase the fruit',6); }
   else { hintStep=2; store.set('sc_hint',2);
-    coachShow('Boost','Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
+    coachShow('Boost',TOUCH?'Hold the <b>BOOST</b> button to boost':'Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
 function startGame(){AU.init();if($('#result'))$('#result').classList.remove('on');reset();state.phase='play';prof.stamp();coachHide();show(null);
   $('#hud').style.display='flex';hud();AU.click();sdkState('play',0);}
 function togglePause(){if(state.phase!=='play')return;
@@ -840,6 +845,9 @@ document.addEventListener('visibilitychange',()=>{
 $('#play').onclick=()=>startGame();
 $('#resume').onclick=()=>{if(state.paused)togglePause();};
 $('#menu3').onclick=()=>toMenu();
+(function(){const b=$('#boostBtn');const dn=e=>{e.preventDefault();e.stopPropagation();IN.boost=true;b.classList.add('held');};const up=e=>{e.stopPropagation();IN.boost=false;b.classList.remove('held');};
+  b.addEventListener('pointerdown',dn);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);b.addEventListener('contextmenu',e=>e.preventDefault());
+  setInterval(()=>{b.classList.toggle('on',TOUCH&&state.phase==='play'&&!state.paused);},250);})();
 $('#sndBtn').onclick=()=>{AU.init();AU.on=!AU.on;store.set('sc_snd',AU.on);syncSnd();AU.click();};
 $('#coachX').onclick=coachHide;
 
