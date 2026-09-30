@@ -217,10 +217,10 @@
 .gk-coinfly svg{width:100%;height:100%}
 
 /* coach hint at the bottom of the play screen (kept clear of the corner where the SDK pause button sits) */
-.gk-coach{position:fixed;left:50%;bottom:calc(84px + var(--gk-sb));transform:translateX(-50%);z-index:32;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(92vw,340px);text-align:center}
-.gk-coach .hand{width:64px;height:64px;animation:gk-tap 1s ease-in-out infinite;filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+.gk-coach{position:fixed;left:50%;bottom:calc(14px + var(--gk-sb));transform:translateX(-50%);z-index:32;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(92vw,340px);text-align:center}
+.gk-coach .hand{display:none;width:64px;height:64px;animation:gk-tap 1s ease-in-out infinite;filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
 .gk-coach .hand svg{width:100%;height:100%}
-.gk-coach .tx{padding:9px 16px 10px;border-radius:14px;color:#fff;font:900 19px/1.15 var(--gk-body);text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.gk-coach .tx{padding:7px 14px 8px;border-radius:14px;color:#fff;font:900 19px/1.15 var(--gk-body);text-shadow:0 1px 0 rgba(0,0,0,.6)}
 .gk-coach .tx small{display:block;font:700 14px/1.25 var(--gk-body);color:#d3def2;margin-top:4px}
 @keyframes gk-tap{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(12px) scale(.88)}}
 .gk-coach.drag .hand{animation-name:gk-drag}
