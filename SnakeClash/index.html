@@ -30,7 +30,7 @@
         box-shadow:inset 0 0 0 1.5px var(--line),inset 0 1px 0 rgba(255,255,255,.2),0 8px 18px rgba(0,0,0,.45)}
   .cell{padding:7px 14px 6px;border-right:1px solid rgba(255,220,140,.22);text-align:center;min-width:72px}
   .cell:last-child{border-right:none}
-  .cell .lab{display:block;font:700 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .cell .lab{display:block;font:700 14px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
   .cell .val{display:block;font:700 26px/1.12 var(--display);font-variant-numeric:tabular-nums;
              background:linear-gradient(180deg,#fff8d2,#f6c651 62%,#d9902a);-webkit-background-clip:text;background-clip:text;color:transparent;
              filter:drop-shadow(0 2px 0 rgba(60,25,0,.85))}
@@ -39,13 +39,13 @@
       box-shadow:inset 0 0 0 1.5px var(--line),0 6px 12px rgba(0,0,0,.4)}
   .ic:active{transform:scale(.94)}
   /* first-run coach: parchment strip, short, stepped, skippable */
-  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  #coach{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);
         z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,470px);
         color:#4a2f17;border-radius:16px;padding:9px 12px;
         background-color:#f3e2b3;background-image:linear-gradient(180deg,rgba(255,250,232,.55),rgba(214,170,96,.18)),var(--pz-paper);background-blend-mode:normal,overlay;background-size:auto,220px;
         box-shadow:0 0 0 2px #6e4519,0 0 0 4px #e6bb55,0 12px 30px rgba(0,0,0,.5)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font:700 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#fff;background:linear-gradient(180deg,#8fe062,#3ea52d);border-radius:8px;padding:5px 9px;white-space:nowrap;box-shadow:0 0 0 1.5px #256f1b}
+  #coach .ck{font:700 14px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#fff;background:linear-gradient(180deg,#8fe062,#3ea52d);border-radius:8px;padding:5px 9px;white-space:nowrap;box-shadow:0 0 0 1.5px #256f1b}
   #coach .ct{font:800 15px/1.32 var(--text);color:#4a2f17}
   #coach .ct b{color:#b8471a}
   #coach .cx{pointer-events:auto;cursor:pointer;border:0;background:linear-gradient(180deg,#a5773d,#6b4519);box-shadow:0 0 0 2px #4b2e10,inset 0 1px 0 rgba(255,255,255,.4);
@@ -74,9 +74,9 @@
   .lede{color:#6b4a2a;line-height:1.5;font:800 15px/1.45 var(--text);margin-top:4px}
   .lede b{color:#4a2f17}
   .howto{display:grid;grid-template-columns:1fr 1fr;gap:7px 8px;margin:14px 0 2px;text-align:left}
-  .howto span{font:800 13px/1.35 var(--text);color:#6b4a2a;border-radius:12px;padding:7px 9px;background:rgba(120,78,30,.14);box-shadow:inset 0 1px 3px rgba(80,40,0,.22),0 1px 0 rgba(255,255,255,.45)}
+  .howto span{font:800 14px/1.35 var(--text);color:#6b4a2a;border-radius:12px;padding:7px 9px;background:rgba(120,78,30,.14);box-shadow:inset 0 1px 3px rgba(80,40,0,.22),0 1px 0 rgba(255,255,255,.45)}
   .howto b{color:#b8471a;font-family:var(--display);font-size:13px;letter-spacing:.04em}
-  .best{margin-top:12px;font:700 13px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:#7d5a33}
+  .best{margin-top:12px;font:700 14px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:#7d5a33}
   .best b{font:700 26px/1 var(--display);color:#8a3a12;margin-left:8px;letter-spacing:0}
   .btn{cursor:pointer;width:100%;margin-top:14px;min-height:56px;padding:12px;border:0;border-radius:16px;
        font:700 20px/1 var(--display);letter-spacing:.04em;color:#fff;text-shadow:0 2px 0 rgba(10,50,0,.55);
@@ -85,10 +85,10 @@
   .btn:active{transform:translateY(4px);box-shadow:0 0 0 2px #256f1b,0 2px 0 2px #1d5a14,inset 0 1px 0 rgba(255,255,255,.5)}
   .btn.quiet{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 52%),linear-gradient(180deg,#a5773d,#6b4519);color:#fff3d2;text-shadow:0 2px 0 rgba(30,12,0,.6);
              box-shadow:0 0 0 2px #4b2e10,0 5px 0 2px #3a230b,0 10px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.4);font-size:17px;min-height:50px}
-  .hint{font:700 12px/1.3 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#7d5a33;margin-top:8px}
+  .hint{font:700 14px/1.3 var(--display);letter-spacing:.1em;text-transform:uppercase;color:#7d5a33;margin-top:8px}
   .row2{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:10px}
   .row2 .btn{width:auto;margin:0;padding:0 22px}
-  .kicker{font:700 13px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:#7d5a33}
+  .kicker{font:700 14px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:#7d5a33}
   .title{font:700 2.2rem/1 var(--display);color:#8a3a12;margin-top:6px;text-shadow:0 1px 0 rgba(255,255,255,.5)}
   .rule{height:0;margin:8px 0}
   .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
@@ -761,7 +761,7 @@ function coachHide(){ coachEl.classList.remove('on'); coachT=0; }
 function maybeCoach(){
   if(state.phase!=='play'||state.paused||coachEl.classList.contains('on')||hintStep>=2)return;
   if(hintStep===0){ hintStep=1; store.set('sc_hint',1);
-    coachShow('Steer','<b>Move the mouse</b> (or <b>\u2190 \u2192</b>) to aim \u2014 chase the glowing orbs',6); }
+    coachShow('Steer','<b>Move the mouse</b> (or <b>\u2190 \u2192</b>) to aim \u2014 chase the fruit',6); }
   else { hintStep=2; store.set('sc_hint',2);
     coachShow('Boost','Hold <b>SHIFT</b> or <b>SPACE</b> to boost \u2014 it burns length for a speed burst',9); } }
 function startGame(){AU.init();if($('#result'))$('#result').classList.remove('on');reset();state.phase='play';prof.stamp();coachHide();show(null);
