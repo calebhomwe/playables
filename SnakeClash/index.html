@@ -274,7 +274,7 @@ const cv=$('#cv'),ctx=cv.getContext('2d');
 let W=0,H=0,DPR=1,vig=null;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));
-  ctx.setTransform(DPR,0,0,DPR,0,0);state.zoom=clamp(Math.min(W,H)/(Math.min(W,H)<600?480:VIEW),.5,1.9);
+  ctx.setTransform(DPR,0,0,DPR,0,0);state.zoom=clamp(Math.min(W,H)/(Math.min(W,H)<600?340:VIEW),.5,1.9);
   const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.32,W/2,H/2,Math.max(W,H)*.78);
   g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.5)');vig=g;}
 
