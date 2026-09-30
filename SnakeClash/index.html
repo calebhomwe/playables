@@ -641,7 +641,10 @@ function drawDecor(){
 function drawArena(){
   const z=state.zoom, cx=camX(), cy=camY(), hw=W/(2*z), hh=H/(2*z);
   VB={x0:cx-hw,y0:cy-hh,x1:cx+hw,y1:cy+hh};
-  ctx.fillStyle=floorPat||LOOK.arena.ink;ctx.fillRect(0,0,ARENA,ARENA);
+  /* only ever rasterise the part of the arena on screen: pattern fills over the whole 2600px world crash WebKit's renderer */
+  const vx0=Math.max(0,VB.x0-8),vy0=Math.max(0,VB.y0-8),vx1=Math.min(ARENA,VB.x1+8),vy1=Math.min(ARENA,VB.y1+8);
+  ctx.save();ctx.beginPath();ctx.rect(vx0,vy0,vx1-vx0,vy1-vy0);ctx.clip();
+  ctx.fillStyle=floorPat||LOOK.arena.ink;ctx.fillRect(vx0,vy0,vx1-vx0,vy1-vy0);
   drawDecor();
   /* the wall: a cobbled stone rim with a shadow on the grass and a lit top edge */
   ctx.save();
@@ -649,7 +652,7 @@ function drawArena(){
   ctx.lineWidth=WALL*1.05;ctx.strokeStyle=wallPat||'#8a8a80';ctx.strokeRect(WALL/2,WALL/2,ARENA-WALL,ARENA-WALL);
   ctx.lineWidth=3;ctx.strokeStyle='rgba(255,246,214,.5)';ctx.strokeRect(WALL*.06,WALL*.06,ARENA-WALL*.12,ARENA-WALL*.12);
   ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.strokeRect(WALL,WALL,ARENA-WALL*2,ARENA-WALL*2);
-  ctx.restore();}
+  ctx.restore();ctx.restore();}
 function drawMinimap(){
   const S=Math.max(104,Math.min(178,W*0.17)), pad=14;
   const x=W-S-pad, y=H-S-pad;
