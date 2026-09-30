@@ -479,5 +479,29 @@
     return P;
   }
 
-  G.PZ = { store, snd, fx, daily, toast, card, profile, ui, cfg, iso, clamp, esc, hashStr, mulberry, RM, injectCss };
+
+  /* pause: CSS animations keep running when the arcade freezes timers, so the game tells us and we pause them too */
+  { const st = D.createElement('style'); st.textContent = 'html.pz-paused *,html.pz-paused *::before,html.pz-paused *::after{animation-play-state:paused!important}'; (D.head || D.documentElement).appendChild(st); }
+  function setPaused(b) { D.documentElement.classList.toggle('pz-paused', !!b); }
+  /* motes: a few warm dust specks drifting in the background light (canvas + requestAnimationFrame, so the arcade's Pause freezes them) */
+  function motes(o) {
+    o = o || {}; if (RM() || D.getElementById('pzMotes')) return;
+    const c = D.createElement('canvas'); c.id = 'pzMotes'; c.setAttribute('aria-hidden', 'true'); c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
+    D.body.insertBefore(c, D.body.firstChild); const g = c.getContext('2d'); let W = 0, H = 0;
+    const N = o.n || 9, P = []; for (let i = 0; i < N; i++) P.push({ x: Math.random(), y: Math.random(), r: 2 + Math.random() * 3, s: 0.012 + Math.random() * 0.02, ph: Math.random() * 6.28, a: 0.28 + Math.random() * 0.25 });
+    function size() { W = c.width = Math.max(1, innerWidth | 0); H = c.height = Math.max(1, innerHeight | 0); }
+    size(); addEventListener('resize', size); let last = 0;
+    (function tick(t) {
+      requestAnimationFrame(tick); if (t - last < 45) return; const dt = Math.min(0.2, (t - last) / 1000); last = t;
+      g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'lighter';
+      for (const p of P) {
+        p.y -= p.s * dt * 5; p.x += Math.sin(t / 1800 + p.ph) * 0.0004; if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
+        const X = p.x * W, Y = p.y * H, rg = g.createRadialGradient(X, Y, 0, X, Y, p.r * 4);
+        rg.addColorStop(0, 'rgba(255,226,150,' + (p.a * (0.6 + 0.4 * Math.sin(t / 700 + p.ph))).toFixed(2) + ')'); rg.addColorStop(1, 'rgba(255,200,110,0)');
+        g.fillStyle = rg; g.beginPath(); g.arc(X, Y, p.r * 4, 0, 6.283); g.fill();
+      }
+    })(0);
+  }
+
+  G.PZ = { setPaused, motes, store, snd, fx, daily, toast, card, profile, ui, cfg, iso, clamp, esc, hashStr, mulberry, RM, injectCss };
 })(window);
