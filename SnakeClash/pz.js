@@ -489,7 +489,7 @@
     const c = D.createElement('canvas'); c.id = 'pzMotes'; c.setAttribute('aria-hidden', 'true'); c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
     D.body.insertBefore(c, D.body.firstChild); const g = c.getContext('2d'); let W = 0, H = 0;
     const N = o.n || 9, P = []; for (let i = 0; i < N; i++) P.push({ x: Math.random(), y: Math.random(), r: 2 + Math.random() * 3, s: 0.012 + Math.random() * 0.02, ph: Math.random() * 6.28, a: 0.28 + Math.random() * 0.25 });
-    function size() { W = c.width = Math.max(1, innerWidth | 0); H = c.height = Math.max(1, innerHeight | 0); }
+    let k = 1; function size() { k = Math.min(2, G.devicePixelRatio || 1); W = Math.max(1, innerWidth | 0); H = Math.max(1, innerHeight | 0); c.width = W * k; c.height = H * k; g.setTransform(k, 0, 0, k, 0, 0); }
     size(); addEventListener('resize', size); let last = 0;
     (function tick(t) {
       requestAnimationFrame(tick); if (t - last < 45) return; const dt = Math.min(0.2, (t - last) / 1000); last = t;
