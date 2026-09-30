@@ -1,0 +1,5 @@
+Seamless material textures from ambientCG (https://ambientcg.com), released under CC0 1.0 (public domain), resized to 512 px JPEG.
+
+  grass.jpg   Grass001        ground.jpg  Ground037     stones.jpg  PavingStones070
+  rock.jpg    Rock030         snow.jpg    Snow006       paper.jpg   Paper002
+  oak.jpg     Wood058         walnut.jpg  Wood066       leather.jpg Leather026

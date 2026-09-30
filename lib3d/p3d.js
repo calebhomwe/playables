@@ -12,13 +12,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 export { THREE };
 
 const MODELS = new URL('./models/', import.meta.url).href;
+/* Two looks share this layer. The default is the old toon look (ramp shading, rim light, ink outlines). setLook('warm') switches
+   every material made afterwards to lit standard materials (no outlines) for the golden-hour direction: call it BEFORE creating the view. */
+let WARM = false;
+export function setLook(name) { WARM = name === 'warm'; }
+export const isWarm = () => WARM;
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 
 /* ── renderer + scene + camera ───────────────────────────────────────────── */
 export function createView(canvas, o = {}) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: WARM ? ((devicePixelRatio || 1) < 2 && !o.low) : true, powerPreference: 'high-performance', alpha: false });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = o.exposure || 1.0;
+  renderer.toneMappingExposure = o.exposure || (WARM ? 1.1 : 1.0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -50,8 +55,11 @@ export function createView(canvas, o = {}) {
     },
     /* draw one frame with every pooled mesh on, so all programs (and shadow programs) compile up front:
        software GL can stall for seconds on a material's first use mid-game */
-    warm() { try { const hidden = []; scene.traverse(o => { if (o.isInstancedMesh && o.count === 0) { o.count = 1; hidden.push(o); } });
-      renderer.render(scene, camera); for (const o of hidden) o.count = 0; } catch (e) { } },
+    warm() {
+      /* compile every material's program WITHOUT blocking: compileAsync uses the driver's parallel shader compile, so the first
+         real frame does not stall for seconds on a slow GPU or software GL (the old version rendered one frame with everything on) */
+      try { const p = renderer.compileAsync ? renderer.compileAsync(scene, camera) : Promise.resolve(renderer.compile(scene, camera)); return p.catch(() => { }); } catch (e) { return Promise.resolve(); }
+    },
     /* world -> CSS pixels; s = CSS pixels per world unit at that depth (for 2D overlay FX) */
     project(x, y, z) {
       _v.set(x, y, z).applyMatrix4(camera.matrixWorldInverse);
@@ -68,6 +76,16 @@ export function createView(canvas, o = {}) {
     view.soft = /swiftshader|llvmpipe|softpipe|software/i.test(String(name)); } catch (e) { view.soft = false; }
   view.fixed = /[?&]hq\b/.test(location.search);
   if (view.soft && !view.fixed) view.dyn = 0.5;
+  if (WARM) {   /* a warm studio-sky environment for the reflections on standard materials */
+    try {
+      const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
+      es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), new THREE.ShaderMaterial({ side: THREE.BackSide,
+        vertexShader: 'varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+        fragmentShader: 'varying vec3 vP; void main(){ float h=vP.y*0.5+0.5; gl_FragColor=vec4(mix(vec3(0.36,0.25,0.17),vec3(0.62,0.72,0.9),h),1.0);}' })));
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), new THREE.MeshBasicMaterial({ color: '#ffd9a8' })); pl.material.color.multiplyScalar(4); pl.position.set(-5, 5, 4); pl.lookAt(0, 0, 0); es.add(pl);
+      scene.environment = pm.fromScene(es, 0.02).texture; scene.environmentIntensity = 0.5; pm.dispose();
+    } catch (e) { /* no environment: the sun and hemisphere still light everything */ }
+  }
   view.resize();
   window.__p3dView = view;   /* QA handle: frame-time and quality experiments */
   return view;
@@ -116,9 +134,9 @@ export function makeSky(view, o = {}) {
 
 /* ── sun (soft shadows, tight camera that follows the action) + hemisphere fill ── */
 export function makeLights(view, o = {}) {
-  const hemi = new THREE.HemisphereLight(o.sky || '#dff1ff', o.ground || '#8a7a66', o.hemi == null ? 1.25 : o.hemi);
-  const sun = new THREE.DirectionalLight(o.sun || '#fff1d6', o.sunI == null ? 2.4 : o.sunI);
-  const dir = new THREE.Vector3(...(o.dir || [-0.5, 1, 0.45])).normalize();
+  const hemi = new THREE.HemisphereLight(o.sky || (WARM ? '#9db9de' : '#dff1ff'), o.ground || (WARM ? '#8c5d3f' : '#8a7a66'), o.hemi == null ? (WARM ? 0.85 : 1.25) : o.hemi);
+  const sun = new THREE.DirectionalLight(o.sun || (WARM ? '#ffc98c' : '#fff1d6'), o.sunI == null ? (WARM ? 3.0 : 2.4) : o.sunI);
+  const dir = new THREE.Vector3(...(o.dir || (WARM ? [-0.6, 0.62, 0.5] : [-0.5, 1, 0.45]))).normalize();   /* golden hour: a low sun, long shadows */
   const size = o.shadow || 14;
   sun.castShadow = !view.low;
   sun.shadow.mapSize.set(o.mapSize || 1024, o.mapSize || 1024);
@@ -161,6 +179,10 @@ export function rim(mat, color = '#ffffff', strength = 0.32, power = 2.6) {
 }
 export function toon(o = {}) {
   const { rim: r0, rimStrength, rimPower, ...rest } = o;
+  if (WARM) {   /* lit standard material: real shading, no ramp, no rim */
+    const m = new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.62, metalness: 0, envMapIntensity: 0.5 }, rest));
+    return m;
+  }
   const m = new THREE.MeshToonMaterial(Object.assign({ gradientMap: ramp() }, rest));
   const r = r0 === undefined ? '#ffffff' : r0;
   if (r) rim(m, r, rimStrength || 0.3, rimPower || 2.6);
@@ -168,9 +190,11 @@ export function toon(o = {}) {
 }
 const TOON_CACHE = new Map();
 function toonFrom(src) {
-  const key = src.map ? src.map.uuid : src.color.getHexString();
+  const key = (WARM ? 'w' : 't') + (src.map ? src.map.uuid : src.color.getHexString());
   if (TOON_CACHE.has(key)) return TOON_CACHE.get(key);
-  const m = toon({ map: src.map || null, color: src.map ? 0xffffff : src.color });
+  /* the warm look grades the kits' candy palettes towards natural colour: a little less saturated, a touch warmer */
+  const grade = c => { if (!WARM) return c; const h = {}; c.getHSL(h); c.setHSL(h.h, h.s * 0.8, h.l * 0.97); c.g *= 0.975; c.b *= 0.9; return c; };
+  const m = toon({ map: src.map || null, color: src.map ? 0xffffff : grade(src.color.clone()) });
   if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
   TOON_CACHE.set(key, m);
   return m;
@@ -194,6 +218,7 @@ export function outlineMat(thick = 0.03, color = '#1c1426') {
 export function withOutline(mesh, thick, color) {
   const g = new THREE.Group();
   g.add(mesh);
+  if (WARM) { g.userData.mesh = mesh; return g; }   /* the warm look has no ink outlines */
   let hull;
   if (mesh.isInstancedMesh) {
     hull = new THREE.InstancedMesh(mesh.geometry, outlineMat(thick, color), mesh.instanceMatrix.count);
@@ -223,7 +248,13 @@ export function loadModel(name) {
   GEO_CACHE.set(name, p);
   return p;
 }
-export function loadMany(names) { return Promise.all(names.map(loadModel)); }
+/* three at a time, with a breath between models, so decoding a few dozen files never becomes one long task on the main thread */
+export async function loadMany(names) {
+  const out = new Array(names.length); let next = 0;
+  const worker = async () => { while (next < names.length) { const k = next++; out[k] = await loadModel(names[k]); await new Promise(r => setTimeout(r, 0)); } };
+  await Promise.all([worker(), worker(), worker()]);
+  return out;
+}
 /* pose frames baked from a Kenney character: <char>_<clip>_<i>.glb */
 export async function loadFrames(char, clip, n) {
   const list = [];
@@ -240,7 +271,7 @@ export class Actor {
     this.mesh = new THREE.Mesh(first.geos[0], first.material);
     this.mesh.castShadow = true;
     this.body = new THREE.Group(); this.body.add(this.mesh);
-    if (o.outline !== false) {
+    if (!WARM && o.outline !== false) {
       this.hull = new THREE.Mesh(first.geos[0], outlineMat(o.outline || 0.012, o.outlineColor));
       this.body.add(this.hull);
     }
@@ -274,6 +305,8 @@ export class Crowd {
   }
   end() { for (let i = 0; i < this.n; i++) { const m = this.meshes[i]; m.count = this.buckets[i]; m.instanceMatrix.needsUpdate = true; } }
   setShadow(on) { for (const m of this.meshes) m.castShadow = on; }
+  /* multiply every runner by a colour (crowd looks); white = the model's own colours */
+  tint(color) { const c = new THREE.Color(color); for (const m of this.meshes) { for (let k = 0; k < this.max; k++) m.setColorAt(k, c); if (m.instanceColor) m.instanceColor.needsUpdate = true; } }
 }
 
 /* ── pooled instanced props (rungs, planks, bricks...) ───────────────────── */
@@ -305,7 +338,7 @@ export class Props {
 export class Particles {
   constructor(scene, max = 400, o = {}) {
     const geo = o.geometry || new THREE.OctahedronGeometry(0.5, 0);
-    this.mat = o.material || new THREE.MeshToonMaterial({ gradientMap: ramp() });
+    this.mat = o.material || (WARM ? new THREE.MeshLambertMaterial() : new THREE.MeshToonMaterial({ gradientMap: ramp() }));
     this.mesh = new THREE.InstancedMesh(geo, this.mat, max);
     this.mesh.frustumCulled = false; this.mesh.count = 0;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -369,8 +402,8 @@ export function textTexture(txt, o = {}) {
     g.clearRect(0, 0, w, h);
     if (oo.bg) { g.fillStyle = oo.bg; g.fillRect(0, 0, w, h); }
     let size = oo.size || Math.round(h * 0.62);
-    g.font = '900 ' + size + "px 'Arial Black',Impact,sans-serif";
-    while (size > 10 && g.measureText(t).width > w * 0.9) { size -= 2; g.font = '900 ' + size + "px 'Arial Black',Impact,sans-serif"; }
+    g.font = '900 ' + size + "px Nunito,'Arial Black',Impact,sans-serif";
+    while (size > 10 && g.measureText(t).width > w * 0.9) { size -= 2; g.font = '900 ' + size + "px Nunito,'Arial Black',Impact,sans-serif"; }
     g.textAlign = 'center'; g.textBaseline = 'middle';
     if (oo.stroke) { g.lineJoin = 'round'; g.lineWidth = Math.max(4, size * 0.16); g.strokeStyle = oo.stroke; g.strokeText(t, w / 2, h / 2 + size * 0.04); }
     g.fillStyle = oo.color || '#ffffff'; g.fillText(t, w / 2, h / 2 + size * 0.04);

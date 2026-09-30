@@ -4,190 +4,122 @@
 <meta charset="UTF-8" />
 <script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#7fd4ff" />
+<meta name="theme-color" content="#2b5384" />
+<link rel="stylesheet" href="../lib3d/gk.css" />
 <title>CROWD CLASH</title>
 <link rel="icon" href="data:," />
 <style>
-  :root{
-    --ink:#2a1b3d; --cream:#fff4dc; --paper:#fffaf0; --sky:#7fd4ff;
-    --sun:#ffd23f; --coral:#ff5a5f; --teal:#35d0ba; --grape:#9d7bff;
-    --grass:#55c96a; --muted:#8b7aa8; --good:#1fc47f; --bad:#f0454f;
-    --display:'Arial Black','Archivo Black',Impact,sans-serif;
-    --text:'Segoe UI',-apple-system,Roboto,Arial,sans-serif;
-  }
+  :root{ --ink:#07132a; --muted:#7a6238; --good:#3fae5a; --bad:#d9483b; --sun:#ffc94a; }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%;overflow:hidden;background:var(--sky);color:var(--ink);
-    font-family:var(--text);overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+  html,body{height:100%;overflow:hidden;background:#2b5384;color:#fff;font-family:var(--gk-body);overscroll-behavior:none;user-select:none;-webkit-user-select:none}
   canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
-  #gl{background:#9fdcff}
-
-  /* -- HUD: chunky sticker cards. The crowd count is the hero number. -- */
-  #hud{position:fixed;top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));
-       right:max(6px,env(safe-area-inset-right));display:none;flex-direction:column;align-items:center;
-       gap:5px;pointer-events:none;z-index:5}
-  #crowdWrap{display:flex;align-items:baseline;gap:9px;background:var(--paper);border:3px solid var(--ink);
-       border-radius:16px;padding:1px 16px 3px;box-shadow:0 5px 0 rgba(42,27,61,.30)}
-  #crowdWrap .clab{font-size:max(12px,.5rem);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--muted)}
-  #crowdCount{font-family:var(--display);font-size:clamp(1.75rem,6.4vw,2.9rem);line-height:1.05;
-       letter-spacing:-.02em;color:var(--ink);transition:transform .09s ease-out,color .12s}
-  #crowdCount.up{transform:scale(1.18);color:var(--good)}
-  #crowdCount.down{transform:scale(.88);color:var(--bad)}
-  #rack{display:flex;background:var(--paper);border:3px solid var(--ink);border-radius:14px;
-       overflow:hidden;box-shadow:0 5px 0 rgba(42,27,61,.30);max-width:100%}
-  .cell{padding:2px 10px;border-right:3px solid var(--ink);text-align:center;min-width:0}
-  .cell:last-child{border-right:none}
-  .cell .lab{display:block;font-size:max(12px,.46rem);letter-spacing:.13em;text-transform:uppercase;
-       color:var(--muted);font-weight:800;white-space:nowrap}
-  .cell .val{display:block;font-family:var(--display);font-size:clamp(.76rem,2.5vw,1.02rem);
-       line-height:1.3;white-space:nowrap}
-  #bossChip{display:none;background:var(--bad);color:#fff;border:3px solid var(--ink);border-radius:999px;
-       padding:2px 13px;font-family:var(--display);font-size:max(12px,.68rem);letter-spacing:.06em;
-       box-shadow:0 4px 0 rgba(42,27,61,.3);animation:bob .72s ease-in-out infinite}
-  @keyframes bob{50%{transform:translateY(-3px)}}
-  #sndBtn{pointer-events:auto;cursor:pointer;background:none;border:none;color:var(--muted)}
-  #sndBtn.on{color:var(--good)}
-  /* first-run coach: one core input, shown where it first matters, skippable */
-  #coach{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
-        z-index:8;display:none;align-items:center;gap:10px;max-width:min(94vw,460px);
-        background:var(--paper,#fffaf0);border:3px solid var(--ink,#2a1b3d);border-radius:14px;
-        padding:8px 11px;box-shadow:0 7px 0 rgba(42,27,61,.3)}
+  #gl{background:#2b5384}
+  #cv{pointer-events:none}
+  /* HUD: kit glass, the crowd count is the hero number */
+  #hud{display:none;pointer-events:none}
+  #crowdWrap{position:fixed;left:0;top:0;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none;will-change:transform;transform:translate(-50%,-50%);z-index:31}
+  #crowdWrap svg{width:38px;height:38px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+  #crowdCount{font:900 clamp(2.6rem,12vw,4rem)/1 var(--gk-body);color:#fff;transition:transform .09s ease-out,color .12s;-webkit-text-stroke:5px rgba(7,19,42,.78);paint-order:stroke fill;text-shadow:0 4px 10px rgba(0,0,0,.45)}
+  #crowdCount.up{transform:scale(1.2);color:#a6f08a}
+  #crowdCount.down{transform:scale(.86);color:#ff9a86}
+  #bossRow{display:flex;justify-content:center;align-items:center;gap:10px}
+  #bossChip{gap:6px}
+  #bossChip.ok{background:linear-gradient(#3fae4a,#1d6a2a)}
+  #starRow{display:flex;gap:2px}
+  #starRow svg{width:28px;height:28px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+  #hud .gk-ib{pointer-events:auto}
+  #coach{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:8;display:none;align-items:center;flex-wrap:wrap;gap:8px 10px;width:min(92vw,400px);
+    padding:10px 14px;border-radius:16px;background:linear-gradient(180deg,rgba(40,78,134,.96),rgba(11,28,58,.97));border:2px solid #050d1f;box-shadow:inset 0 0 0 1.5px rgba(240,179,58,.78),0 12px 24px rgba(0,0,0,.45)}
   #coach.on{display:flex;animation:coachIn .26s ease-out}
-  #coach .ck{font-family:var(--display);font-size:max(12px,.56rem);letter-spacing:.13em;text-transform:uppercase;
-        color:#fff;background:var(--good,#1fc47f);border-radius:8px;padding:3px 8px;white-space:nowrap}
-  #coach .ct{font-size:.8rem;font-weight:700;color:var(--ink,#2a1b3d);line-height:1.32}
-  #coach .ct b{color:var(--bad,#f0454f)}
-  #coach .cx{pointer-events:auto;cursor:pointer;border:none;background:rgba(42,27,61,.12);
-        color:var(--muted,#8b7aa8);border-radius:8px;padding:5px 8px;font-size:max(12px,.58rem);letter-spacing:.1em;
-        text-transform:uppercase;font-family:inherit;font-weight:800}
+  #coach .ck{font:900 13px/1 var(--gk-body);letter-spacing:.12em;text-transform:uppercase;color:#3b2814;background:linear-gradient(#ffe38c,#f0b33a);border-radius:8px;padding:5px 9px;white-space:nowrap}
+  #coach .ct{flex:1 1 100%;order:3;font:800 16px/1.3 var(--gk-body);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+  #coach .ct b{color:#ffd35c}
+  #coach .cx{order:2;margin-left:auto;pointer-events:auto;min-height:40px;min-width:48px}
   @keyframes coachIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
-  /* Phone: the coach is a flex ROW, so on a narrow screen the coaching text was squeezed to its
-     min-content width and rendered one or two words per line down a tall narrow column over the game.
-     Give the text its own full-width line and let the kicker and Skip share the line above. */
-  @media (max-width:560px){
-    #coach{bottom:calc(66px + env(safe-area-inset-bottom))}   /* clear of the arcade pause button (bottom right) */
-    #coach{flex-wrap:wrap;row-gap:6px;width:min(94vw,460px);max-width:none}
-    #coach .ck{order:1}
-    #coach .cx{order:2;margin-left:auto}
-    #coach .ct{order:3;flex:1 1 100%;min-width:0}
-  }
-
-  /* -- screens -- */
-  .screen{position:fixed;inset:0;display:none;place-items:center;padding:14px;z-index:10;
-          background:radial-gradient(120% 85% at 50% 8%,rgba(127,212,255,.10),rgba(42,27,61,.5));
-          pointer-events:auto;overflow:auto}
-  .screen.on{display:grid}
-  .panel{width:min(520px,100%);text-align:center;background:var(--cream);
-         border:4px solid var(--ink);border-radius:24px;padding:18px 18px 20px;
-         box-shadow:0 12px 0 rgba(42,27,61,.34)}
-  .kicker{font-size:max(12px,.56rem);letter-spacing:.3em;text-transform:uppercase;color:var(--coral);font-weight:800}
-  .title{font-family:var(--display);font-size:clamp(2.1rem,8.4vw,3.3rem);line-height:.9;
-         letter-spacing:-.02em;text-transform:uppercase;color:var(--ink);
-         text-shadow:3px 3px 0 var(--sun),6px 6px 0 rgba(42,27,61,.18)}
-  .rule{height:5px;background:repeating-linear-gradient(90deg,var(--coral) 0 10px,var(--sun) 10px 20px,
-        var(--teal) 20px 30px,var(--grape) 30px 40px);width:150px;margin:12px auto;border-radius:3px}
-  .lede{color:#5b4b78;margin-top:6px;line-height:1.52;font-size:.84rem;max-width:32em;margin-inline:auto}
-  .lede b{color:var(--ink)}
-  .legend{display:flex;gap:8px;justify-content:center;margin:11px 0 3px;flex-wrap:wrap}
-  .lg{display:flex;align-items:center;gap:6px;font-size:max(12px,.6rem);letter-spacing:.04em;font-weight:800;
-      text-transform:uppercase;color:#5b4b78;border:2px solid var(--ink);border-radius:999px;
-      padding:3px 9px;background:var(--paper)}
-  .dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid rgba(42,27,61,.5)}
-  .how{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:11px}
-  .hw{display:flex;align-items:center;gap:6px;font-size:max(12px,.58rem);letter-spacing:.04em;font-weight:800;
-      text-transform:uppercase;color:#5b4b78;background:var(--paper);border:2px solid var(--ink);
-      border-radius:10px;padding:4px 8px}
-  .hw i{font-family:var(--display);font-style:normal;color:var(--ink)}
-  .btn{cursor:pointer;width:100%;margin-top:12px;padding:13px;font-family:var(--display);
-       font-size:.96rem;letter-spacing:.04em;text-transform:uppercase;background:var(--sun);
-       color:var(--ink);border:4px solid var(--ink);border-radius:16px;
-       box-shadow:0 6px 0 rgba(42,27,61,.42)}
-  .btn:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(42,27,61,.42)}
-  .btn.quiet{background:var(--paper);box-shadow:0 6px 0 rgba(42,27,61,.24)}
-  .marks{font-family:var(--display);font-size:1.05rem;letter-spacing:.1em;color:var(--coral);margin:9px 0 1px}
-  .log{display:flex;justify-content:space-between;padding:5px 10px;border-bottom:2px dashed rgba(42,27,61,.18);
-       font-size:.8rem;font-weight:700;color:#7a6a94}
-  .log b{font-family:var(--display);color:var(--ink)}
+  /* screens */
+  .screen{display:none}
+  .screen.on{display:flex}
+  #s-menu .gk-pick .mid{min-width:190px}
+  .gk-logo{font-size:clamp(38px,12.5vw,56px)}
+  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;background:linear-gradient(#ffe38c,#f0b33a);color:#3b2814;border:2px solid #7a4a08;border-radius:8px;padding:4px 9px;
+       font:900 12px/1.2 var(--gk-body);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  .rules{width:min(100%,360px);padding:8px 12px;border-radius:12px;background:linear-gradient(180deg,rgba(40,78,134,.9),rgba(11,28,58,.92));border:2px solid #050d1f;box-shadow:inset 0 0 0 1.5px rgba(240,179,58,.6);text-align:left}
+  .rules p{font:700 14px/1.3 var(--gk-body);color:#e8eefb}
+  .rules p b{color:#ffd35c}
+  .rules .keys{margin-top:4px;font-size:13px;color:#c8d4ea}
+  .rules i{font-style:normal;font-weight:900;color:#fff}
+  @media (hover:none) and (pointer:coarse){ .rules{display:none} }
+  .legend{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .legend .g{flex:0 1 auto;flex-direction:row;padding:4px 10px;font-size:13px}
+  .dot{width:12px;height:12px;border-radius:4px;display:inline-block;border:1.5px solid rgba(255,255,255,.7)}
+  .log{display:flex;justify-content:space-between;padding:2px 8px;border-bottom:2px dashed rgba(122,98,56,.35);font:700 14px/1.2 var(--gk-body);color:var(--muted)}
+  .log b{font-weight:900;color:#3b2814}
   .log:last-child{border-bottom:none}
-  #newbest{display:none;font-family:var(--display);color:var(--good);margin-top:7px;
-           font-size:.92rem;letter-spacing:.08em}
-  .hint{font-size:max(12px,.58rem);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px;line-height:1.7}
-  /* arcade: 40px tap targets, the "Codes on" label, reduced motion */
-  #sndBtn{min-height:40px;min-width:40px}
-  #coach .cx{min-height:40px;min-width:48px}
-  .codes-on{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
-       background:var(--good);color:#fff;border:2px solid var(--ink);border-radius:8px;padding:4px 9px;
-       font:900 12px/1.2 var(--display,sans-serif);letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+  #overStats{display:grid;grid-template-columns:1fr 1fr;column-gap:14px}
+  #overStats .log{gap:6px;font-size:14px}
+  #newbest{display:none}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="gk">
 <canvas id="gl"></canvas>
 <canvas id="cv"></canvas>
 <div class="codes-on" id="codesOn" hidden>Codes on</div>
 
-<div id="hud">
-  <div id="crowdWrap"><span class="clab">Crowd</span><span id="crowdCount">8</span></div>
-  <div id="rack">
-    <div class="cell"><span class="lab">Distance</span><span class="val" id="dist">0m</span></div>
-    <div class="cell"><span class="lab">Score</span><span class="val" id="score">0</span></div>
-    <div class="cell"><span class="lab">Peak</span><span class="val" id="peak">8</span></div>
-    <div class="cell"><span class="lab">Best</span><span class="val" id="best">0</span></div>
-    <div class="cell"><button class="lab" id="sndBtn" type="button">Sound On</button></div>
-  </div>
-  <div id="bossChip">Boss gate ahead</div>
+<div class="gk-hud" id="hud">
+  <div class="gk-row"><div id="lvlbar" style="flex:1;min-width:0"></div><button class="gk-ib" id="sndBtn" type="button" aria-label="Sound"></button></div>
+  <div id="crowdWrap"><span id="crowdIcon"></span><span id="crowdCount">8</span></div>
+  <div id="bossRow"><span class="gk-chip" id="bossChip"></span><span id="starRow"></span></div>
 </div>
 
 <div id="coach" role="status" aria-live="polite">
   <span class="ck">Tip</span>
   <span class="ct" id="coachTxt"></span>
-  <button class="cx" id="coachX" type="button">Skip</button>
+  <button class="gk-btn xs dark cx" id="coachX" type="button">Skip</button>
 </div>
 
-<div class="screen on" id="s-menu"><div class="panel">
-  <div class="kicker">Chunky Crowd Co.</div>
-  <div class="title" style="margin-top:5px">Crowd<br>Clash</div>
-  <div class="rule"></div>
-  <p class="lede">Steer your crowd down the track: take the gates that <b>grow</b> you, dodge the ones that <b>shrink</b> you, then burst the <b>boss gate</b>.</p>
-  <div class="legend">
-    <span class="lg"><i class="dot" style="background:#1fc47f"></i>&times;2 &middot; +7 grow</span>
-    <span class="lg"><i class="dot" style="background:#f0454f"></i>&divide;3 &middot; &minus;12 shrink</span>
-    <span class="lg"><i class="dot" style="background:#ffd23f"></i>bars &middot; maces</span>
-  </div>
-  <div class="how">
-    <span class="hw"><i>A / D</i> or <i>&#8592; &#8594;</i> steer</span>
-    <span class="hw"><i>drag</i> on touch</span>
-    <span class="hw"><i>Esc</i> pause</span>
-    <span class="hw"><i>M</i> mute</span>
-  </div>
-  <div class="marks" id="menuBest">Best 0</div>
-  <button class="btn" id="play">Start the run</button>
-  <button class="btn quiet" id="gfxBtn" type="button">Graphics: High</button>
-  <p class="hint">Tap anywhere &middot; Space &mdash; start &amp; restart</p>
+<div class="gk-screen screen on" id="s-menu">
+  <div class="gk-tb"><span class="gk-chip" id="coinChip"></span></div>
+  <h1 class="gk-logo">Crowd<span class="l2">Clash</span></h1>
+  <div class="gk-seg" id="modeSeg" role="tablist"><button type="button" data-m="level" class="on">LEVELS</button><button type="button" data-m="marathon">MARATHON</button></div>
+  <div class="rules" id="rules"><p>Steer your crowd down the track (drag on touch): take the gates that <b>grow</b> you (&times;2 &middot; +7), dodge the ones that <b>shrink</b> you (&divide;3 &middot; &minus;12), then burst the <b>boss gate</b>.</p>
+    <p class="keys"><i>A / D</i> or <i>&#8592; &#8594;</i> steer &middot; <i>drag</i> on touch &middot; <i>Esc</i> pause &middot; <i>M</i> mute</p></div>
+  <div class="gk-tag" id="menuBest">Best 0</div>
+  <div id="picker"></div>
+  <div id="marInfo" class="gk-goals gk-hidden"></div>
+  <div class="gk-goals row" id="goals"></div>
+  <button class="gk-btn green wide throb" id="play" type="button">Start the run</button>
+  <div class="gk-menu"><button class="gk-btn sm dark" id="skinBtn" type="button"></button></div>
+  <div id="dailyHost"></div>
+  <div id="weekHost"></div>
+  <button class="gk-btn xs dark" id="gfxBtn" type="button">Graphics: High</button>
+</div>
+
+<div class="gk-screen dim screen" id="s-pause"><div class="gk-card">
+  <div class="gk-head"><h2>Paused</h2></div>
+  <div id="pauseStats" style="width:100%;text-align:left"></div>
+  <button class="gk-btn green wide" id="resume" type="button">Back to the run</button>
+  <button class="gk-btn sm dark" id="quit" type="button">Give up</button>
 </div></div>
 
-<div class="screen" id="s-pause"><div class="panel">
-  <div class="kicker">Crowd parked</div>
-  <div class="title" style="font-size:2rem;margin-top:5px">Paused</div>
-  <div class="rule"></div>
-  <div id="pauseStats" style="text-align:left;margin-top:6px"></div>
-  <button class="btn" id="resume">Back to the run</button>
-  <button class="btn quiet" id="quit">Give up</button>
-</div></div>
-
-<div class="screen" id="s-over"><div class="panel">
-  <div class="kicker" id="overKick">Nobody left</div>
-  <div class="title" style="font-size:2.05rem;margin-top:5px" id="overTitle">Crowd wiped out</div>
-  <div class="rule"></div>
-  <div id="newbest">&#9733; NEW BEST &#9733;</div>
-  <div id="overStats" style="text-align:left;margin-top:7px"></div>
-  <button class="btn" id="again">Run again</button>
-  <button class="btn quiet" id="menu2">Back to menu</button>
-  <button class="btn quiet" id="btnShare">Save the score card</button>
+<div class="gk-screen dim screen" id="s-over"><div class="gk-card">
+  <div class="gk-head" id="overHead"><h2 id="overTitle">Crowd wiped out</h2></div>
+  <div class="gk-cap" id="overKick" style="margin-top:-6px">Nobody left</div>
+  <div class="gk-stars" id="ovStars"></div>
+  <div><div class="gk-big gk-out" id="ovScore">0</div><div class="gk-cap">Score <span class="gk-newbest" id="newbest">NEW BEST</span></div></div>
+  <div class="gk-stat" id="ovStat"></div>
+  <div class="gk-goals card" id="ovGoals"></div>
+  <div id="overStats" style="width:100%;text-align:left"></div>
+  <button class="gk-btn green wide" id="again" type="button">Run again</button>
+  <div class="gk-menu"><button class="gk-btn sm dark" id="menu2" type="button">Menu</button><button class="gk-btn sm dark" id="btnShare" type="button">Score card</button></div>
 </div></div>
 
 <script type="importmap">{"imports":{"three":"../lib3d/three/three.module.min.js","three/addons/":"../lib3d/three/jsm/"}}</script>
 <script type="module">
-import {THREE,createView,makeSky,makeLights,toon,withOutline,Particles,Props,Crowd,Actor,loadMany,loadFrames,mat,textTexture,frameMeter} from '../lib3d/p3d.js';
+import {THREE,setLook,createView,makeSky,makeLights,toon,withOutline,Particles,Props,Crowd,Actor,loadMany,loadFrames,mat,textTexture,frameMeter} from '../lib3d/p3d.js';
+import {GK} from '../lib3d/gk.js';
+setLook('warm');   /* golden-hour standard materials, no ink outlines (p3d.js) */
+try{ document.fonts.load("900 64px Nunito"); }catch(e){}
 (()=>{ 'use strict';
 /* ═══════════════ CROWD CLASH — a chunky crowd runner ═══════════════
    Fully offline single file. Canvas 2D, no assets, no network.
@@ -218,15 +150,59 @@ const codesOn=()=>!!((SDK&&SDK.cheated)||Object.keys(cheat).some(k=>cheat[k]));
 function codeOn(code){ code=String(code||'').trim().toUpperCase();
   if(!CODES[code])return null; cheat[code]=true; document.getElementById('codesOn').hidden=false; return code; }
 let REC=store.get('cc_rec',{games:0,best:0,crowd:0,dist:0,bursts:0});
+/* ── progression: levels with stars, worlds, crowd looks, a daily goal. Saved under 'crowd-clash-prog-v1' (the kit). ── */
+const ic=(n,px)=>GK.icon(n,px);
+const SKINS=[
+  {id:'natural',name:'Natural',css:'radial-gradient(circle at 35% 30%,#ffffff,#d9c9a8 60%,#8a7a5a)',tint:'#ffffff',cost:0},
+  {id:'golden', name:'Golden', css:'radial-gradient(circle at 35% 30%,#fff3c0,#f0b33a 60%,#a8690f)',tint:'#ffdc8a',cost:{stars:3}},
+  {id:'frost',  name:'Frost',  css:'radial-gradient(circle at 35% 30%,#ffffff,#a8c8f0 60%,#4f7fc0)',tint:'#b4d2ff',cost:{coins:60}},
+  {id:'rose',   name:'Rosy',   css:'radial-gradient(circle at 35% 30%,#fff0f2,#f0a0b0 60%,#b04a62)',tint:'#ffb8c4',cost:{coins:110}},
+  {id:'mint',   name:'Mint',   css:'radial-gradient(circle at 35% 30%,#f2fff6,#9fdcb0 60%,#3f8a58)',tint:'#b4ecc4',cost:{level:5}},
+  {id:'shadow', name:'Shadow', css:'radial-gradient(circle at 35% 30%,#c8ccdc,#6a7088 60%,#2a2e44)',tint:'#8a90a8',cost:{stars:10}},
+  {id:'sunset', name:'Sunset', css:'radial-gradient(circle at 35% 30%,#ffe0b0,#ff9a55 60%,#b8481a)',tint:'#ffa870',cost:{streak:3}},
+  {id:'royal',  name:'Royal',  css:'radial-gradient(circle at 35% 30%,#efe6ff,#a890f0 60%,#5a3fb0)',tint:'#b49cff',cost:{stars:18}},
+  {id:'ember',  name:'Ember',  css:'radial-gradient(circle at 35% 30%,#ffe0c0,#ff7a4a 60%,#a8300f)',tint:'#ff8a5a',cost:{coins:250}},
+];
+const WORLDS=[
+  {name:'Golden Meadow', top:'#2b5384',hor:'#f5bd85',fog:'#f0c090',sun:'#ffc98c',sunI:3.0,hemiSky:'#9db9de',hemiGnd:'#8c5d3f',grass:'#ffffff'},
+  {name:'Blue Morning',  top:'#1f6a9a',hor:'#d3eef0',fog:'#cfe6ea',sun:'#fff0d6',sunI:2.7,hemiSky:'#bfe4ff',hemiGnd:'#6a8a5a',grass:'#e8ffe0'},
+  {name:'Rose Dusk',     top:'#3a3378',hor:'#f0a6a0',fog:'#e8a09c',sun:'#ffb890',sunI:2.9,hemiSky:'#b3a6e0',hemiGnd:'#8a5a6a',grass:'#f0e0d0'},
+  {name:'Harvest Gold',  top:'#3a5f8a',hor:'#f6d68f',fog:'#f2d090',sun:'#ffd08a',sunI:3.1,hemiSky:'#a9c3e6',hemiGnd:'#9a6a3a',grass:'#fff0b8'},
+  {name:'Ember Night',   top:'#150f36',hor:'#c8583a',fog:'#a8503a',sun:'#ffa868',sunI:2.6,hemiSky:'#8f7fd0',hemiGnd:'#5a2f2a',grass:'#b0a090'},
+];
+const PROG=GK.progress('crowd-clash',{perWorld:5,worlds:WORLDS,skins:SKINS,dailyReward:60,
+  daily:[
+    {id:'gates',icon:'flag',  text:n=>'Take '+n+' gates',            targets:[20,35,50]},
+    {id:'burst',icon:'trophy',text:n=>'Burst '+n+' boss gates',      targets:[1,2,3]},
+    {id:'dodge',icon:'shield',text:n=>'Dodge '+n+' hazards',         targets:[10,18,28]},
+    {id:'wins', icon:'star',  text:n=>'Clear '+n+' levels',          targets:[2,3,4]},
+  ]});
+let MODE=PROG.d.mode==='marathon'?'marathon':'level';
+let LEVEL=Math.min(PROG.d.level,PROG.d.pick||PROG.d.level);
+let SPEC=null;   /* the level being played, null in the marathon */
+const STAR_X=[1,1.7,2.6];   /* crowd at the boss gate, as a multiple of what it needs, for 1, 2 and 3 stars */
+function levelSpec(L){
+  const z=Math.min(920,300+80*(L-1)), hp=L<=8?Math.round(22+3.3*(L-1)):45+4*(L-8);
+  return {L,z,hp,stars:STAR_X.map(x=>Math.ceil(hp*x))};
+}
+let skinTint=new THREE.Color('#ffffff');
+function applySkin(){ const sk=PROG.current(); skinTint=new THREE.Color(sk.tint||'#ffffff'); if(CR)for(const c of CR)c.tint(skinTint); if(FALLS)for(const c of FALLS)c.tint(skinTint); }
+let groundTint=null, appliedWorld=-1;
+function applyWorld(L){
+  const w=PROG.world(L||1); if(appliedWorld===w.index)return; appliedWorld=w.index;
+  SKY.set(w.top,w.hor,'#c9a06a',w.fog); LIGHT.sun.color.set(w.sun); LIGHT.sun.intensity=w.sunI; LIGHT.hemi.color.set(w.hemiSky); LIGHT.hemi.groundColor.set(w.hemiGnd);
+  if(typeof ground!=='undefined'&&ground)ground.material.color.set(w.grass);
+  document.querySelector('meta[name=theme-color]')&&document.querySelector('meta[name=theme-color]').setAttribute('content',w.top);
+}
 
 /* ── palette: bright, chunky, cheerful — sticker-book, not cyberpunk. ── */
-const P={ink:'#2a1b3d',cream:'#fff4dc',paper:'#fffaf0',sky:'#7fd4ff',skyHi:'#d8f2ff',
-  sun:'#ffe066',sunD:'#ffc93c',grass:'#6ed86f',grassD:'#49bd5c',hill:'#8ee08a',
-  track:'#9b8cf0',trackD:'#7b69dd',lane:'#fff4dc',good:'#22c98a',goodD:'#0f9c69',
-  bad:'#ff5a5f',badD:'#d63846',bark:'#a86a3d',barkD:'#7c4a28',
-  dudes:['#ff6b6b','#ffd23f','#35d0ba','#4ec5ff','#9d7bff','#7ee787','#ffa552','#ff8fc7'],
-  dudesD:['#e04a4a','#e0ac1c','#1fa895','#2ba0d8','#7a5bd8','#5cc46a','#e08a34','#e06fa8']};
-const DFONT="'Arial Black',Impact,sans-serif";
+const P={ink:'#07132a',cream:'#fff3d6',paper:'#fffbf1',sky:'#2b5384',skyHi:'#f5bd85',
+  sun:'#ffc94a',sunD:'#e59a1e',grass:'#8aa858',grassD:'#6d8c45',hill:'#9ab866',
+  track:'#8b8378',trackD:'#5d564d',lane:'#fff3d6',good:'#3fae5a',goodD:'#1f7a3a',
+  bad:'#d9483b',badD:'#9a2a20',bark:'#8a5a32',barkD:'#5d3a1e',
+  dudes:['#d9563f','#e8b04a','#4aa39a','#5b8fc4','#8a6fc0','#7aa872','#e08a4a','#d9789f'],
+  dudesD:['#a83a2a','#b8862a','#33827a','#3f6f9e','#664f9c','#5a8852','#b86a30','#b0587f']};
+const DFONT="Nunito,'Arial Black',Impact,sans-serif";
 
 /* ── audio: WebAudio synth only — oscillators + one noise buffer ── */
 const AU={ctx:null,on:store.get('cc_snd',true),master:null,nb:null,murmur:null,mg:null,mb:null,
@@ -289,8 +265,8 @@ const AU={ctx:null,on:store.get('cc_snd',true),master:null,nb:null,murmur:null,m
 /* ── 3D view (WebGL) + the 2D overlay CANVAS (floating numbers, rings, flashes) ── */
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const V=createView($('#gl'),{fov:50,far:260,low:GFX_LOW});
-const SKY=makeSky(V,{top:'#2f9ff0',horizon:'#d8f2ff',bottom:'#8fd98a',fog:'#cdeefc',fogNear:55,fogFar:110,sun:'#fff3c0'});
-const LIGHT=makeLights(V,{dir:[-0.5,1,0.45],shadow:13,hemi:1.05,sunI:2.3,sky:'#e8f6ff',ground:'#6f8f5a'});
+const SKY=makeSky(V,{top:'#2b5384',horizon:'#f5bd85',bottom:'#c9a06a',fog:'#f0c090',fogNear:46,fogFar:118,sun:'#ffcf94'});
+const LIGHT=makeLights(V,{dir:[-0.62,0.55,0.5],shadow:13,hemi:0.85,sunI:3.0,sky:'#9db9de',ground:'#8c5d3f'});
 const FM=frameMeter();
 let W=0,H=0,DPR=1,FX=900;
 function resize(){ DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
@@ -300,8 +276,8 @@ function resize(){ DPR=GFX_LOW?1:Math.min(devicePixelRatio||1,2); W=innerWidth; 
 addEventListener('resize',resize); resize();
 
 /* ── constants (the whole game is tuned right here) ── */
-const BOSS_Z=920, BOSS_HP=45;   /* reachable once you learn to stack x2 gates */                 /* the finale gate           */
-const SPEED0=12.5, SPEED1=24, SPEED_RAMP=BOSS_Z, MENU_SPEED=8;
+let BOSS_Z=920, BOSS_HP=45;   /* the marathon: reachable once you learn to stack x2 gates. A level sets both (see levelSpec) */
+const SPEED0=12.5, SPEED1=24, SPEED_RAMP=920, MENU_SPEED=8;
 const GATE_EVERY0=32, GATE_EVERY1=19;         /* metres between gates      */
 const OBS_EVERY0=44, OBS_EVERY1=23;           /* metres between hazards    */
 const LEAD=60;                                /* spawn-ahead window        */
@@ -597,6 +573,9 @@ function checkEnts(){
 
 /* ── HUD + screens ── */
 let hudT=0;
+const bar=GK.levelBar(document.getElementById('lvlbar'));
+const HS={dist:-1,crowd:-1,boss:'',stars:'',near:false};
+function starRowHTML(){ const c=state.crowd, st=SPEC?SPEC.stars:null; if(!st)return ''; return st.map(t=>ic(c>=t?'star':'starOff')).join(''); }
 function hud(){
   const c=state.crowd;
   if(c!==state.hudCrowd){ const el=$('#crowdCount'); el.textContent=String(c);
@@ -604,16 +583,14 @@ function hud(){
     if(state.hudUp>0)el.classList.add('up'); else if(state.hudUp<0)el.classList.add('down');
     state.hudCrowd=c; window.clearTimeout(hudT);
     hudT=setTimeout(()=>el.classList.remove('up','down'),130); }
-  $('#dist').textContent=Math.floor(state.dist)+'m';
-  $('#score').textContent=scoreNow();
-  $('#peak').textContent=state.peak;
-  const _ahead=scoreNow()>(REC.best||0);
-  $('#best').textContent=(_ahead?'★ ':'')+Math.max(REC.best||0,scoreNow());
-  $('#best').classList.toggle('hot',_ahead);
-  const near=state.dist>BOSS_Z-150;
+  const pr=clamp(state.dist/BOSS_Z,0,1), pk=Math.round(pr*200);
+  if(pk!==HS.dist){ HS.dist=pk; bar.set(pr); }
+  const near=SPEC?true:state.dist>BOSS_Z-150;
   const chip=$('#bossChip');
-  chip.style.display=(near&&state.phase==='play')?'inline-block':'none';
-  if(near)chip.textContent='Boss '+BOSS_HP+' \u00b7 you '+state.crowd;
+  const show=near&&state.phase==='play'; const want=show?'inline-flex':'none';
+  if(chip.style.display!==want)chip.style.display=want;
+  if(near){ const t=(SPEC?'Boss ':'Boss ')+BOSS_HP+' · you '+state.crowd; if(t!==HS.boss){ HS.boss=t; chip.innerHTML=ic('flag')+'<b>'+t+'</b>'; chip.classList.toggle('ok',state.crowd>=BOSS_HP); } }
+  const sr=starRowHTML(); if(sr!==HS.stars){ HS.stars=sr; $('#starRow').innerHTML=sr; }
 }
 function row(a,b){ return '<div class="log"><span>'+a+'</span><b>'+b+'</b></div>'; }
 function statsHTML(){ return [['Peak crowd',state.peak],['Crowd left',state.crowd],
@@ -622,9 +599,25 @@ function statsHTML(){ return [['Peak crowd',state.peak],['Crowd left',state.crow
 function show(id){ const s=document.querySelectorAll('.screen');
   for(let i=0;i<s.length;i++)s[i].classList.remove('on');
   if(id)$(id).classList.add('on'); }
-function updMenuBest(){ $('#menuBest').textContent='Best '+(REC.best||0); }
-function updSnd(){ const b=$('#sndBtn'); b.textContent=AU.on?'Sound On':'Sound Off';
-  b.classList.toggle('on',AU.on); }
+function updMenuBest(){ paintMenu(); }
+function menuBestText(){ if(MODE==='level'){ const sc=(PROG.d.scores||{})[LEVEL]|0; return 'Level '+LEVEL+' best '+sc; } return 'Best '+(REC.best||0); }
+function goalsFor(sp){ const st=PROG.starsFor(sp.L);
+  return [{s:1,t:'Burst the gate ('+sp.stars[0]+')',ok:st>=1},{s:2,t:'Crowd '+sp.stars[1]+' or more',ok:st>=2},{s:3,t:'Crowd '+sp.stars[2]+' or more',ok:st>=3}]; }
+function goalsHTML(list,res,row){ return list.map(g=>{ const ok=res?res[g.s-1]:g.ok;
+  if(row)return '<div class="g'+(ok?' done':'')+'"><span class="gk-stars mini">'+ic(ok?'star':'starOff').repeat(g.s)+'</span><span>'+g.t+'</span></div>';
+  return '<div class="g'+(ok?' done':'')+'">'+ic(ok?'star':'starOff')+'<span>'+g.t+'</span></div>'; }).join(''); }
+function paintMenu(){
+  const lv=MODE==='level';
+  $('#picker').classList.toggle('gk-hidden',!lv); $('#goals').classList.toggle('gk-hidden',!lv); $('#marInfo').classList.toggle('gk-hidden',lv);
+  $('#modeSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===MODE));
+  $('#coinChip').innerHTML=ic('coin')+'<b>'+PROG.d.coins+'</b><i class="plus"></i>'; $('#menuBest').textContent=menuBestText();
+  $('#skinBtn').innerHTML=ic('bag')+'CROWDS'+(PROG.newSkins.length?'<span class="gk-badge">'+PROG.newSkins.length+'</span>':'');
+  if(lv){ applyWorld(LEVEL); $('#goals').innerHTML=goalsHTML(goalsFor(levelSpec(LEVEL)),null,true); $('#play').innerHTML=ic('play')+'PLAY LEVEL '+LEVEL; }
+  else { applyWorld(1); $('#marInfo').innerHTML='<div class="g">'+ic('trophy')+'<span>Best score</span><span class="n">'+(REC.best||0)+'</span></div><div class="g">'+ic('flag')+'<span>Boss gate bursts</span><span class="n">'+(REC.bursts||0)+'</span></div><div class="g">'+ic('star')+'<span>Biggest crowd</span><span class="n">'+(REC.crowd||0)+'</span></div>'; $('#play').innerHTML=ic('play')+'START THE RUN'; }
+  $('#dailyHost').replaceChildren(GK.dailyStrip(PROG)); $('#weekHost').replaceChildren(GK.weekRow(PROG));
+}
+let picker=null;
+function updSnd(){ const b=$('#sndBtn'); b.innerHTML=ic(AU.on?'snd':'sndOff'); b.setAttribute('aria-label',AU.on?'Sound on':'Sound off'); b.classList.toggle('on',AU.on); }
 /* ── first-run coach: teach the ONE core input at the moment it matters ── */
 const HINT=store.get('cc_hint',false);
 let hintSeen=!!HINT, coachT=0;
@@ -641,7 +634,15 @@ function maybeCoach(){ if(hintSeen||state.phase!=='play'||state.paused)return;
     coach('First gate','Steer into the <b>\u00d72</b> or <b>+</b> half to grow the crowd \u2014 the boss gate needs <b>'+BOSS_HP+'</b>',8); }
 
 /* ── run control ── */
+function applySpec(){
+  SPEC=MODE==='level'?levelSpec(LEVEL):null;
+  BOSS_Z=SPEC?SPEC.z:920; BOSS_HP=SPEC?SPEC.hp:45;
+  applyWorld(SPEC?SPEC.L:1);
+  bar.levels(SPEC?SPEC.L:'M',''); bar.end(ic('flag',22)); bar.set(0); bar.done(false);
+  HS.dist=-1; HS.boss=''; HS.stars=''; bossKey='';
+}
 function startRun(){
+  applySpec();
   state.phase='play'; state.paused=false; state.frozen=false; state.win=false;
   state.dist=0; state.px=0; state.pxT=0; state.steer=0; state.speed=SPEED0; state.runPh=0;
   state.shake=0; state.flash=0; state.spawner=true; state.nextGateZ=52; state.nextObsZ=78;
@@ -653,6 +654,7 @@ function startRun(){
   show(null); $('#hud').style.display='flex';
   AU.init(); AU.startMurmur(); AU.ui();
   hud(); sdkState('play',0);
+  if(SPEC)try{ SDK&&SDK.state({scene:'play',level:SPEC.L}); }catch(e){}
 }
 function toMenu(){
   state.phase='menu'; state.paused=false; state.win=false;
@@ -661,6 +663,8 @@ function toMenu(){
   state.spawner=false; state.hits=0;
   resetCrowd(CROWD0);
   show('#s-menu'); $('#hud').style.display='none';
+  BOSS_Z=920; BOSS_HP=45; SPEC=null;
+  if(picker){ LEVEL=Math.min(LEVEL,PROG.d.level); picker.set(LEVEL); }
   updMenuBest(); AU.stopMurmur(); sdkState('title');
 }
 function togglePause(force){
@@ -673,32 +677,59 @@ function togglePause(force){
   else { AU.init(); AU.startMurmur(); }
   return state.paused;
 }
+function statRow(i,v,l){ return '<div><b>'+ic(i)+'<span>'+v+'</span></b><span>'+l+'</span></div>'; }
+function dailyDone(){ const r=PROG.cfg.dailyReward||60; GK.toast('Daily goal done! +'+r+' coins',{icon:'check'}); GK.confetti(innerWidth/2,innerHeight*.3,40); }
 function runOver(reason){
   if(state.phase!=='play')return state.reason||null;
   state.reason=reason;
   state.phase=(reason==='burst')?'win':'over';
   AU.stopMurmur();
-  const sc=scoreNow(), d=Math.floor(state.dist), cheated=codesOn(), nb=!cheated&&sc>(REC.best||0);
-  /* a run with codes on never replaces the best score */
+  const sc=scoreNow(), d=Math.floor(state.dist), cheated=codesOn();
+  const sp=SPEC, won=!!state.win;
+  /* records: the marathon keeps the classic best, a level keeps its own best score. A run with codes on never replaces a best. */
+  let nb=false, bestShow=REC.best||0;
+  if(sp){ PROG.d.scores=PROG.d.scores||{}; const pb=PROG.d.scores[sp.L]|0; nb=!cheated&&won&&sc>pb; if(nb)PROG.d.scores[sp.L]=sc; bestShow=Math.max(pb,nb?sc:0); }
+  else nb=!cheated&&sc>(REC.best||0);
   REC.games=(REC.games||0)+1;
-  if(!cheated){ REC.best=Math.max(REC.best||0,sc);
+  if(!cheated){ if(!sp)REC.best=Math.max(REC.best||0,sc);
     REC.crowd=Math.max(REC.crowd||0,state.peak); REC.dist=Math.max(REC.dist||0,d); }
   if(state.win)REC.bursts=(REC.bursts||0)+1;
+  if(!sp)bestShow=REC.best||0;
   store.set('cc_rec',REC);
   const COPY={wiped:['Nobody left','Crowd wiped out'],post:['Straight into the post','Crowd wiped out'],
     gate:['The maths got you','Crowd wiped out'],boss:['Not enough of you','The gate held'],
     burst:['Boss gate down','Gate burst!'],quit:['You walked away','Run abandoned']};
   const c=COPY[reason]||COPY.wiped;
   $('#overKick').textContent=c[0]; $('#overTitle').textContent=c[1];
-  $('#newbest').style.display=nb?'block':'none';
+  $('#overHead').className='gk-head '+(won?'win':(reason==='quit'?'':'lose'));
+  $('#newbest').style.display=nb?'inline-block':'none';
+  let coins=Math.floor(sc/60), ns=0, res=[false,false,false], fx=null;
+  if(sp){
+    if(won){ const n=state.burstCount; res=sp.stars.map(t=>n>=t); ns=res.filter(Boolean).length;
+      coins=10+6*sp.L+12*ns+Math.floor(state.peak/10);
+      fx=PROG.finishLevel(sp.L,ns,coins); if(PROG.addDaily('wins',1))dailyDone(); if(PROG.addDaily('burst',1))dailyDone(); }
+    else PROG.addCoins(Math.floor(coins/2));
+    $('#ovStars').style.display=''; GK.stars($('#ovStars'),ns,{animate:won});
+    $('#ovGoals').innerHTML=goalsHTML(goalsFor(sp),won?res:[false,false,false]); $('#ovGoals').classList.remove('gk-hidden');
+  } else { PROG.addCoins(coins); $('#ovStars').style.display='none'; $('#ovGoals').classList.add('gk-hidden'); if(won&&PROG.addDaily('burst',1))dailyDone(); }
+  if(PROG.addDaily('gates',state.gates))dailyDone(); if(PROG.addDaily('dodge',state.dodges))dailyDone();
+  PROG.save();
+  $('#ovScore').textContent='0'; GK.countUp($('#ovScore'),sc,800);
+  $('#ovStat').innerHTML=statRow('coin','+'+(sp&&!won?Math.floor(coins/2):coins),'Coins')+statRow('flag',state.peak,'Peak')+statRow('trophy',bestShow,'Best');
   const rows=[['Peak crowd',state.peak],['Crowd left',state.crowd],['Distance',d+' m'],
     ['Gates taken',state.gates],['Knocked out',state.lost],
     state.win?['Boss gate','BURST +'+state.burstBonus]:['Boss gate',BOSS_HP+' needed'],
-    ['Score',sc],['Best',REC.best]].concat(cheated?[['Codes on','Best not saved']]:[]);
+    ['Score',sc],['Best',bestShow]].concat(cheated?[['Codes on','Best not saved']]:[]);
   $('#overStats').innerHTML=rows.map(r=>row(r[0],r[1])).join('');
+  const nextL=sp&&won; $('#again').innerHTML=(nextL?ic('play')+'NEXT LEVEL':ic('replay')+'RUN AGAIN'); $('#again').dataset.next=nextL?'1':'';
   show('#s-over'); $('#hud').style.display='none';
   if(state.win)AU.win(); else AU.lose();
+  GK.haptic(won?[20,40,30]:40);
   updMenuBest(); sdkState('over',sc);
+  try{ if(SDK&&sp&&won)SDK.state({scene:'over',score:sc,level:sp.L,stars:ns}); }catch(e){}
+  if(won||nb)setTimeout(()=>GK.confetti(innerWidth/2,innerHeight*.35,70),300);
+  if(coins)setTimeout(()=>GK.fly({x:innerWidth/2,y:innerHeight*.5},$('#ovStat').firstElementChild,Math.min(8,2+Math.floor(coins/8)),'coin'),700);
+  PROG.takeNewSkins().forEach((sk,k)=>setTimeout(()=>GK.toast('New crowd look: '+sk.name+'<small>Open Crowds on the menu to use it</small>',{icon:'gift'}),1500+k*900));
   return state.reason;
 }
 
@@ -799,22 +830,32 @@ const WZ=z=>-z;
 const DUDE_S=1.25;                          /* Kenney mini character (0.7 m) -> ~1 m runner */
 const TRACK_W=TRACK_HW*2+.7, TILE_L=10.8;   /* textured track tile: stripes, kerbs, chevrons */
 V.camera.fov=50; V.camera.updateProjectionMatrix();
+function loadImg(src,cb){ const im=new Image(); im.onload=()=>cb(im); im.src=src; return im; }
+/* a texture tile painted from a real CC0 image (ambientCG) tinted towards the palette, with the game's markings on top */
 function trackTex(){ const c=document.createElement('canvas'); c.width=512; c.height=720; const g=c.getContext('2d');
   const k=512/TRACK_W, kx=.35*k;
-  g.fillStyle=P.track; g.fillRect(0,0,512,720);
-  g.fillStyle='rgba(255,244,220,.13)'; for(let i=0;i<2;i++) g.fillRect(kx,i*360,512-2*kx,180);
-  g.fillStyle='rgba(255,244,220,.5)'; for(const x of [-1.17,1.17]){ const px=(x+TRACK_W/2)*k; for(let i=0;i<2;i++) g.fillRect(px-4,40+i*360,8,200); }
-  g.fillStyle='rgba(255,244,220,.3)'; g.beginPath(); const cx=256; g.moveTo(cx,420); g.lineTo(cx+1.5*k,540); g.lineTo(cx,600); g.lineTo(cx-1.5*k,540); g.closePath(); g.fill();
-  for(let i=0;i<3;i++){ g.fillStyle=i%2?P.bad:P.cream; g.fillRect(0,i*240,kx,240); g.fillRect(512-kx,i*240,kx,240); }
-  g.fillStyle='rgba(42,27,61,.25)'; g.fillRect(kx-3,0,3,720); g.fillRect(512-kx,0,3,720);
-  for(let i=0;i<900;i++){ g.fillStyle='rgba(255,255,255,'+(Math.random()*.05)+')'; g.fillRect(Math.random()*512,Math.random()*720,3,3); }
+  const paint=(img)=>{
+    g.clearRect(0,0,512,720);
+    if(img){ const pat=g.createPattern(img,'repeat'); if(pat&&pat.setTransform){ try{ pat.setTransform(new DOMMatrix().scale(.5)); }catch(e){} } g.fillStyle=pat; g.fillRect(0,0,512,720); g.globalAlpha=.42; g.fillStyle=P.track; g.fillRect(0,0,512,720); g.globalAlpha=1; }
+    else { g.fillStyle=P.track; g.fillRect(0,0,512,720); }
+    g.fillStyle='rgba(255,243,214,.10)'; for(let i=0;i<2;i++) g.fillRect(kx,i*360,512-2*kx,180);
+    g.fillStyle='rgba(255,243,214,.55)'; for(const x of [-1.17,1.17]){ const px=(x+TRACK_W/2)*k; for(let i=0;i<2;i++) g.fillRect(px-4,40+i*360,8,200); }
+    g.fillStyle='rgba(255,243,214,.32)'; g.beginPath(); const cx=256; g.moveTo(cx,420); g.lineTo(cx+1.5*k,540); g.lineTo(cx,600); g.lineTo(cx-1.5*k,540); g.closePath(); g.fill();
+    for(let i=0;i<3;i++){ g.fillStyle=i%2?P.bad:P.cream; g.fillRect(0,i*240,kx,240); g.fillRect(512-kx,i*240,kx,240); }
+    g.fillStyle='rgba(7,19,42,.28)'; g.fillRect(kx-3,0,3,720); g.fillRect(512-kx,0,3,720);
+  };
+  paint(null);
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=THREE.ClampToEdgeWrapping; t.wrapT=THREE.RepeatWrapping;
-  t.anisotropy=8; return t; }
+  t.anisotropy=8;
+  loadImg('../lib3d/tex/paving.jpg',im=>{ paint(im); t.needsUpdate=true; });
+  return t; }
 function grassTex(){ const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
-  g.fillStyle=P.grass; g.fillRect(0,0,256,256);
-  for(let i=0;i<1400;i++){ const a=Math.random(); g.fillStyle=a<.5?'rgba(73,189,92,.55)':'rgba(160,236,140,.35)';
-    g.fillRect(Math.random()*256,Math.random()*256,2+Math.random()*3,4+Math.random()*6); }
-  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8; return t; }
+  const paint=(img)=>{ g.fillStyle=P.grass; g.fillRect(0,0,256,256);
+    if(img){ g.drawImage(img,0,0,256,256); g.globalAlpha=.32; g.fillStyle=P.grass; g.fillRect(0,0,256,256); g.globalAlpha=1; } };
+  paint(null);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.anisotropy=8;
+  loadImg('../lib3d/tex/grass.jpg',im=>{ paint(im); t.needsUpdate=true; });
+  return t; }
 const TRACK_N=13;
 const trackT=trackTex(); trackT.repeat.set(1,TRACK_N);
 const sideMat=toon({color:P.trackD,rim:null});
@@ -823,7 +864,7 @@ track.receiveShadow=true; V.scene.add(track);
 const grassT=grassTex(); grassT.repeat.set(40,40);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240),toon({map:grassT,rim:null}));
 ground.rotation.x=-Math.PI/2; ground.position.y=-.36; ground.receiveShadow=true; V.scene.add(ground);
-SKY.u.sunDir.value.set(.25,.22,-1).normalize();
+SKY.u.sunDir.value.set(-.32,.17,-1).normalize();
 
 /* crowd, leader, knocked-out tumblers */
 let CR=null, LEADER=null, FLAG=null, FALLS=null, PROPS={}, BRICKS=null, SPIKE=null;
@@ -842,6 +883,7 @@ Promise.all([loadFrames('crowdA','sprint',8),loadFrames('crowdB','sprint',8),loa
   SPIKE=new Props(V.scene,m[6],12,{outline:.02}); BRICKS=new Props(V.scene,m[7],90,{receive:true});
   PROPS.barrel=new Props(V.scene,m[8],12);
   if(V.low)for(const k in CR)CR[k].setShadow(false);
+  applySkin(); applyWorld(MODE==='level'?LEVEL:1);
   V.warm();
 }).catch(e=>{ /* a model failed to load: the track, gates and HUD still work */ });
 V.onQuality=low=>{ LIGHT.setLow(low); if(CR)for(const c of CR)c.setShadow(!low); };
@@ -866,17 +908,19 @@ function makeGateObj(){ const g=new THREE.Group();
   g.visible=false; V.scene.add(g);
   return {g,L,R,e:null}; }
 for(let i=0;i<6;i++)GATES.push(makeGateObj());
+function rrect(g,x,y,w,h,r){ g.beginPath(); if(g.roundRect)g.roundRect(x,y,w,h,r); else g.rect(x,y,w,h); }
 function drawPanel(side,spec,flash){ const good=OPS[spec.op].good, key=opText(spec)+(flash>0?'f':'')+good;
   if(side.key===key)return; side.key=key;
   const c=side.tt.canvas, g=c.getContext('2d'); g.clearRect(0,0,256,256);
-  const gr=g.createLinearGradient(0,0,0,256);
-  gr.addColorStop(0,good?'rgba(99,240,182,.62)':'rgba(255,144,149,.62)'); gr.addColorStop(1,good?'rgba(34,201,138,.82)':'rgba(255,90,95,.82)');
-  g.fillStyle=flash>0?'rgba(255,250,240,.9)':gr; g.fillRect(0,0,256,256);
-  g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=10; g.strokeRect(5,5,246,246);
-  side.tt.draw(opText(spec),{color:'#fffaf0',stroke:'rgba(42,27,61,.85)',size:120});
-  /* draw() cleared the canvas: lay the panel back under the text */
-  g.globalCompositeOperation='destination-over'; g.fillStyle=flash>0?'rgba(255,250,240,.9)':gr; g.fillRect(0,0,256,256);
-  g.globalCompositeOperation='source-over'; g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=10; g.strokeRect(5,5,246,246);
+  const lay=()=>{ const gr=g.createLinearGradient(0,0,0,256);
+    gr.addColorStop(0,flash>0?'rgba(255,248,224,.95)':(good?'rgba(120,214,140,.70)':'rgba(240,120,100,.70)'));
+    gr.addColorStop(1,flash>0?'rgba(255,236,180,.95)':(good?'rgba(30,120,60,.86)':'rgba(150,34,24,.86)'));
+    rrect(g,4,4,248,248,26); g.fillStyle=gr; g.fill();
+    rrect(g,4,4,248,248,26); g.lineWidth=8; g.strokeStyle='rgba(240,179,58,.95)'; g.stroke();
+    rrect(g,13,13,230,230,20); g.lineWidth=2; g.strokeStyle='rgba(255,255,255,.35)'; g.stroke(); };
+  side.tt.draw(opText(spec),{color:'#fffaf0',stroke:'rgba(7,19,42,.9)',size:120});
+  /* draw() cleared the canvas: lay the glass back under the text */
+  g.globalCompositeOperation='destination-over'; lay(); g.globalCompositeOperation='source-over';
   side.tt.tex.needsUpdate=true;
   side.tint.material.color.set(good?P.good:P.bad); }
 
@@ -910,18 +954,18 @@ let bossKey='', bossBurst=null;
 function drawBossPanel(){ const frac=clamp(state.crowd/BOSS_HP,0,1), key=BOSS_HP+':'+Math.round(frac*40);
   if(key===bossKey)return; bossKey=key;
   const g=bossPanelT.canvas.getContext('2d'); g.clearRect(0,0,512,512);
-  const eye=(x)=>{ g.fillStyle=P.cream; g.beginPath(); g.ellipse(x,150,58,68,0,0,6.283); g.fill(); g.lineWidth=10; g.strokeStyle=P.ink; g.stroke();
-    g.fillStyle=P.ink; g.beginPath(); g.ellipse(x,170,26,30,0,0,6.283); g.fill(); };
-  eye(150); eye(362);
-  g.fillStyle=P.ink; g.save(); g.translate(150,70); g.rotate(.25); g.fillRect(-70,-12,140,24); g.restore();
-  g.save(); g.translate(362,70); g.rotate(-.25); g.fillRect(-70,-12,140,24); g.restore();
-  g.fillStyle='rgba(42,27,61,.85)'; g.beginPath(); g.roundRect?g.roundRect(96,250,320,170,30):g.rect(96,250,320,170); g.fill();
-  g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=P.cream; g.font="900 34px 'Arial Black',Impact,sans-serif"; g.fillText('TO BURST',256,282);
-  g.fillStyle=P.sun; g.font="900 118px 'Arial Black',Impact,sans-serif"; g.fillText(String(BOSS_HP),256,362);
-  g.fillStyle='rgba(42,27,61,.85)'; g.fillRect(106,448,300,34); g.fillStyle=frac>=1?P.good:P.sun; g.fillRect(110,452,292*frac,26);
-  g.strokeStyle=P.cream; g.lineWidth=4; g.strokeRect(106,448,300,34);
+  const gr=g.createLinearGradient(0,60,0,470); gr.addColorStop(0,'rgba(34,80,140,.96)'); gr.addColorStop(1,'rgba(8,20,44,.97)');
+  rrect(g,50,60,412,400,40); g.fillStyle=gr; g.fill();
+  rrect(g,50,60,412,400,40); g.lineWidth=10; g.strokeStyle='#f0b33a'; g.stroke();
+  rrect(g,66,76,380,368,30); g.lineWidth=3; g.strokeStyle='rgba(255,255,255,.28)'; g.stroke();
+  g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#e8eefb'; g.font="900 44px "+DFONT; g.fillText('TO BURST',256,130);
+  g.lineJoin='round'; g.lineWidth=14; g.strokeStyle='rgba(7,19,42,.9)'; g.font="900 170px "+DFONT; g.strokeText(String(BOSS_HP),256,270);
+  g.fillStyle=P.sun; g.fillText(String(BOSS_HP),256,270);
+  rrect(g,96,350,320,46,23); g.fillStyle='rgba(7,19,42,.8)'; g.fill();
+  rrect(g,102,356,Math.max(0,308*frac),34,17); g.fillStyle=frac>=1?P.good:P.sun; g.fill();
+  g.fillStyle='#fff'; g.font="900 30px "+DFONT; g.fillText(state.crowd+' / '+BOSS_HP,256,420);
   bossPanelT.tex.needsUpdate=true; }
-const bossCol=[new THREE.Color('#e6dcff'),new THREE.Color('#c9b8ff'),new THREE.Color('#ffffff')];   /* tints on the Kenney brick */
+const bossCol=[new THREE.Color('#d9c4a0'),new THREE.Color('#c6a878'),new THREE.Color('#e8d8b8')];   /* tints on the Kenney brick */
 
 /* scenery either side of the track (seeded per slot, so it never pops) */
 function hash1(i){ const s=Math.sin(i*127.1+11.7)*43758.5453; return s-Math.floor(s); }
@@ -932,6 +976,12 @@ function flyPush(m,dir,force){ fly.push({x:m.wx,y:.1,z:m.wz,vx:dir*rnd(1.5,5)+(f
   if(fly.length>90)fly.splice(0,fly.length-90); }
 
 let camX=0, lastT=0;
+const cwEl=document.getElementById('crowdWrap');
+/* the crowd count floats over the flag-bearer, like the genre: it follows the crowd instead of covering the gates at the end of the track */
+function placeCount(){ if(state.phase!=='play'&&state.phase!=='dying')return;
+  V.camera.updateMatrixWorld(); const p=proj(state.dist,state.px,2.9); if(!p||!isFinite(p.x))return;
+  const x=clamp(p.x,54,W-54), y=clamp(p.y,150,H*.72);
+  cwEl.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) translate(-50%,-50%)'; }
 function render(){ if(calm()){ state.shake=0; state.flash=0; }
   state.frames++;
   const now=performance.now()/1000, rdt=Math.min(.05,lastT?now-lastT:.016); lastT=now;
@@ -945,6 +995,7 @@ function render(){ if(calm()){ state.shake=0; state.flash=0; }
   V.camera.position.set(camX+(Math.random()-.5)*sh*.6,cy+(Math.random()-.5)*sh*.4,cz);
   V.camera.lookAt(camX*.8,0,WZ(state.dist-back)-7);
   LIGHT.follow(state.px,0,WZ(state.dist)-4);
+  placeCount();
   SKY.update(now);
   /* track, ground: world-fixed textures on meshes that ride with the camera */
   const tz=Math.floor(state.dist/TILE_L)*TILE_L;
@@ -1045,7 +1096,7 @@ function drawFX(){
     const y=f.y-f.t*54, pop=1+Math.max(0,.18-f.t)*2.2;
     ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.font='900 '+Math.round(f.size*pop)+'px '+DFONT; ctx.lineJoin='round';
-    ctx.lineWidth=Math.max(3,f.size*.2); ctx.strokeStyle='rgba(42,27,61,.85)';
+    ctx.lineWidth=Math.max(3,f.size*.2); ctx.strokeStyle='rgba(7,19,42,.85)';
     ctx.strokeText(f.txt,f.x,y); ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,y); ctx.restore(); }
 }
 function drawVignette(){
@@ -1089,7 +1140,13 @@ document.addEventListener('visibilitychange',()=>{
   if(SDK)return;   /* the SDK pauses on a hidden tab and resumes when it comes back */
   if(document.hidden&&state.phase==='play'&&!state.paused)togglePause(true); });
 $('#play').onclick=()=>{ AU.init(); startRun(); };
-$('#again').onclick=()=>{ AU.init(); startRun(); };
+picker=GK.levelPicker($('#picker'),PROG,{start:LEVEL,onChange:l=>{ LEVEL=l; PROG.d.pick=l; PROG.save(); paintMenu(); }});
+$('#modeSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; MODE=b.dataset.m; PROG.d.mode=MODE; PROG.save(); AU.ui(); paintMenu(); });
+function openSkins(){ AU.ui(); PROG.takeNewSkins(); GK.shop({prog:PROG,title:'Crowd looks',onEquip:()=>{ applySkin(); paintMenu(); },onClose:paintMenu,
+  preview:sk=>'<div class="sw" style="background:'+sk.css+'"></div>'}); }
+$('#skinBtn').onclick=openSkins; $('#coinChip').onclick=openSkins;
+GK.hooks.sfx=n=>{ try{ AU.ui(); }catch(e){} };
+$('#again').onclick=()=>{ AU.init(); if($('#again').dataset.next&&MODE==='level'){ LEVEL=Math.min(PROG.d.level,LEVEL+1); PROG.d.pick=LEVEL; PROG.save(); } startRun(); };
 $('#menu2').onclick=()=>{ AU.ui(); toMenu(); };
 $('#resume').onclick=()=>{ AU.ui(); togglePause(false); };
 $('#quit').onclick=()=>{ AU.ui(); runOver('quit'); };
@@ -1199,7 +1256,9 @@ window.__crowd_debug={
       burstBonus:state.burstBonus,ents:{gates:cnt('gate'),bars:cnt('bar'),maces:cnt('mace'),
         boss:cnt('boss')},parts:parts.length,fly:fly.length,floats:floats.length,
       rec:JSON.parse(JSON.stringify(REC)),snd:AU.on}; },
-  start(){ startRun(); return this.state(); },
+  start(){ MODE='marathon'; startRun(); return this.state(); },
+  startLevel(l){ MODE='level'; LEVEL=Math.max(1,Math.min(PROG.d.level,+l||1)); startRun(); return this.state(); },
+  level(){ return {mode:MODE,level:LEVEL,spec:SPEC,prog:JSON.parse(JSON.stringify(PROG.d))}; },
   menu(){ toMenu(); return this.state(); },
   wipe(){ try{localStorage.removeItem('cc_rec')}catch(e){}
     REC={games:0,best:0,crowd:0,dist:0,bursts:0}; updMenuBest(); hud(); return this.state(); },
@@ -1276,7 +1335,7 @@ if(SDK){ try{ window.ArcadeSDK.init({
   onTutorial:replayTutorial, onHint:hintNow, onCheat:applyCode
 }); }catch(e){} }
 
-resize(); updSnd(); toMenu(); requestAnimationFrame(tick);
+resize(); updSnd(); paintMenu(); toMenu(); requestAnimationFrame(tick);
 })();
 </script>
 </body>

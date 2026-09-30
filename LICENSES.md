@@ -39,6 +39,17 @@ Kenney's licence text (all three packs): "License: (Creative Commons Zero, CC0)
 http://creativecommons.org/publicdomain/zero/1.0/ — You may use these assets in personal
 and commercial projects. Credit (Kenney or www.kenney.nl) would be nice but is not mandatory."
 
+## Snake Clash: textures and fonts (added by the puzzle-and-board upgrade)
+
+Snake Clash draws its arena, wall and paper panels from real material photographs, and its
+menus use two self-hosted fonts. Nothing is loaded from the network at run time.
+
+| File(s) | Source | Licence |
+| --- | --- | --- |
+| `SnakeClash/assets/tex/grass.jpg` `ground.jpg` `stones.jpg` `rock.jpg` `snow.jpg` `paper.jpg` `oak.jpg` `walnut.jpg` `leather.jpg` | ambientCG (https://ambientcg.com), downsized to 512 px JPEG. See `SnakeClash/assets/tex/LICENSE.txt` for the asset id of each | CC0 1.0 |
+| `SnakeClash/assets/fonts/fredoka.woff2`, `nunito.woff2` | Google Fonts, Latin subsets (Fredoka, Nunito) | SIL Open Font License 1.1 |
+| `SnakeClash/pz.js` | the shared progression kit (XP levels, daily goals, weekly stamps, result card). A copy of `arcade-hub/games/kit/pz.js` | this repo |
+
 ## Everything else
 
 Textures on the tracks, roads, water, gate panels and signs are drawn at run time with

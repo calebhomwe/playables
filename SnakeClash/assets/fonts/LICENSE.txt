@@ -1,0 +1,10 @@
+Fonts used by the portal shell (index.html, play.html). Both are self-hosted
+Latin subsets downloaded from Google Fonts on 2026-09-24.
+
+  fredoka.woff2  Fredoka (variable, 300-700)   SIL Open Font License 1.1
+                 https://fonts.google.com/specimen/Fredoka
+  nunito.woff2   Nunito (variable, 400-900)    SIL Open Font License 1.1
+                 https://fonts.google.com/specimen/Nunito
+
+Full licence text: https://openfontlicense.org/open-font-license-official-text/
+The icons in tools/portal_shell.py were drawn for this site.
