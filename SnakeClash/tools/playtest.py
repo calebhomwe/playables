@@ -22,6 +22,8 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8155
 URL = f"http://localhost:{PORT}/index.html"
@@ -279,8 +281,9 @@ def main():
             pg.wait_for_timeout(200)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
             check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+                "()=>document.getElementById('s-pause').classList.contains('on')"
+                "||!!document.querySelector('#arcade-sdk.on')"))
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(200)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -298,8 +301,9 @@ def main():
                            "document.dispatchEvent(new Event('visibilitychange'));"
                            "return 1;"))
             pg.wait_for_timeout(160)
-            check("coming back does not un-pause by itself",
-                  pg.evaluate(ST)["paused"] is True)
+            # The arcade SDK resumes a pause that hiding the tab caused (a pause the player chose stays).
+            check("coming back resumes a pause the hidden tab caused",
+                  pg.evaluate(ST)["paused"] is False)
             pg.evaluate(fn(D + ".resume();"))
             pg.wait_for_timeout(120)
             check("resume continues the run after returning",
@@ -398,7 +402,8 @@ def main():
                   str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
+            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")
+           and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 

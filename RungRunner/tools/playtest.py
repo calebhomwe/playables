@@ -7,6 +7,7 @@ records to localStorage, restart, and the offline constraint at runtime.
 
 Run:  python tools/playtest.py   (needs playwright; screenshots land in proof/)
 """
+import os
 import pathlib
 import subprocess
 import sys
@@ -16,9 +17,11 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8151
-URL = f"http://localhost:{PORT}/index.html"
+URL = f"http://localhost:{PORT}/{ROOT.name}/index.html?hq"  # repo root so ../lib3d resolves; ?hq pins full resolution (no software-GL downscale) so the census sees every pixel
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 D = "window.__rung_debug"
@@ -34,16 +37,19 @@ def fn(body):
 # thrown error inside rAF or a poisoned draw all show up here as a flat frame â€”
 # which "no errors in the console" would happily hide.
 PIXEL_JS = """()=>{
-  const cv=document.getElementById('cv'), cc=cv.getContext('2d');
+  /* the scene is WebGL (#gl); redraw a frame and read it back in the same task */
+  window.__rung_debug.advance(0);
+  const gl=document.getElementById('gl'), cv=document.createElement('canvas');
+  cv.width=gl.width; cv.height=gl.height;
+  const cc=cv.getContext('2d'); cc.drawImage(gl,0,0);
   const d=cc.getImageData(0,0,cv.width,cv.height).data;
-  const near=(r,g,b,R,G,B,t)=>Math.abs(r-R)<t&&Math.abs(g-G)<t&&Math.abs(b-B)<t;
   let gold=0,cyan=0,pink=0,dark=0;
   for(let i=0;i<d.length;i+=4){
     const r=d[i],g=d[i+1],b=d[i+2];
-    if(near(r,g,b,255,198,63,58))gold++;
-    if(near(r,g,b,53,224,208,58))cyan++;
-    if(near(r,g,b,255,61,127,58))pink++;
-    if(r+g+b<210)dark++;
+    if(r>170&&g>100&&b<110&&r>b+90)gold++;              /* wooden ladders + gold rungs */
+    if(g>150&&b>140&&r<150&&g>r+50)cyan++;              /* cyan-tinted wall you can clear, lamps */
+    if(r>200&&g<120&&b>90)pink++;                        /* pink wall / saw glow */
+    if(r+g+b<210)dark++;                                 /* the night-blue road */
   }
   return {gold:gold,cyan:cyan,pink:pink,dark:dark,total:d.length/4};
 }"""
@@ -51,7 +57,7 @@ PIXEL_JS = """()=>{
 def main():
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(PORT)],
-        cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cwd=str(ROOT.parent), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.2)
     errors, requests, checks = [], [], []
 
@@ -67,7 +73,7 @@ def main():
 
     try:
         with sync_playwright() as p:
-            br = p.chromium.launch(headless=True)
+            br = p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None, headless=True, args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
             pg = br.new_page(viewport={"width": 1280, "height": 720})
             pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
             pg.on("pageerror", lambda e: errors.append("pageerror: " + str(e)))
@@ -159,7 +165,7 @@ def main():
             pg.keyboard.press("Escape")
             pg.wait_for_timeout(200)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
-            pg.click("#resume")
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(200)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -250,7 +256,8 @@ def main():
             check("sound toggle persists to rr_snd", saved is not None, str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
+            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}") and not u.startswith(f"blob:http://localhost:{PORT}")
+           and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 

@@ -14,6 +14,7 @@ hazards with `forceObstacle()`, so every mechanic assert is exact.
 
 Run:  python tools/playtest.py   (needs playwright; screenshots land in proof/)
 """
+import os
 import pathlib
 import subprocess
 import sys
@@ -23,9 +24,11 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8153
-URL = f"http://localhost:{PORT}/index.html"
+URL = f"http://localhost:{PORT}/{ROOT.name}/index.html?hq"  # repo root so ../lib3d resolves; ?hq pins full resolution (no software-GL downscale) so the census sees every pixel
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 D = "window.__crowd_debug"
@@ -41,18 +44,21 @@ def fn(body):
 # error inside rAF or a poisoned draw all show up here as a flat frame — which
 # "no errors in the console" would happily hide.
 PIXEL_JS = """()=>{
-  const cv=document.getElementById('cv'), cc=cv.getContext('2d');
+  /* the scene is WebGL (#gl); redraw a frame and read it back in the same task */
+  window.__crowd_debug.render();
+  const gl=document.getElementById('gl'), cv=document.createElement('canvas');
+  cv.width=gl.width; cv.height=gl.height;
+  const cc=cv.getContext('2d'); cc.drawImage(gl,0,0);
   const d=cc.getImageData(0,0,cv.width,cv.height).data;
-  const near=(r,g,b,R,G,B,t)=>Math.abs(r-R)<t&&Math.abs(g-G)<t&&Math.abs(b-B)<t;
   let sky=0,grass=0,track=0,cream=0,good=0,bad=0;
   for(let i=0;i<d.length;i+=4){
     const r=d[i],g=d[i+1],b=d[i+2];
-    if(b>200&&b>r+30&&g>140)sky++;
-    if(g>140&&g>r+34&&g>b+34)grass++;
-    if(near(r,g,b,155,140,240,26))track++;
-    if(near(r,g,b,255,244,220,14))cream++;
-    if(near(r,g,b,34,201,138,40))good++;
-    if(near(r,g,b,255,90,95,40))bad++;
+    if(b>200&&b>r+30&&g>140)sky++;                      /* blue sky */
+    if(g>120&&g>r+30&&g>b+30)grass++;                   /* lit grass */
+    if(b>140&&b>g+25&&r>g&&r<b)track++;                 /* lilac track, lit or shaded */
+    if(r>225&&g>215&&b>185)cream++;                     /* cream lane paint and kerbs */
+    if(g>150&&g>r+70&&b>90&&b<g)good++;                 /* green gate panel */
+    if(r>200&&g<140&&b<150&&r>g+80)bad++;               /* coral gate panel */
   }
   return {sky:sky,grass:grass,track:track,cream:cream,good:good,bad:bad,
           total:d.length/4,w:cv.width,h:cv.height};
@@ -62,7 +68,7 @@ PIXEL_JS = """()=>{
 def main():
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(PORT)],
-        cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cwd=str(ROOT.parent), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.2)
     errors, requests, checks = [], [], []
 
@@ -91,7 +97,7 @@ def main():
 
     try:
         with sync_playwright() as p:
-            br = p.chromium.launch(headless=True)
+            br = p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None, headless=True, args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
             pg = br.new_page(viewport={"width": 1280, "height": 720})
             pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
             pg.on("pageerror", lambda e: errors.append("pageerror: " + str(e)))
@@ -319,8 +325,9 @@ def main():
             pg.wait_for_timeout(180)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
             check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+                "()=>document.getElementById('s-pause').classList.contains('on')"
+                "||!!document.querySelector('#arcade-sdk.on')"))
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(180)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -397,7 +404,8 @@ def main():
                   str(saved))
 
             # ---- offline at runtime -------------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
+            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}") and not u.startswith(f"blob:http://localhost:{PORT}")
+           and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 

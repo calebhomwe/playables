@@ -13,6 +13,8 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 with sync_playwright() as p:
@@ -44,7 +46,7 @@ if st.get("phase") != "play":
 moved = head0 and drove and (abs(drove["x"] - head0["x"]) + abs(drove["y"] - head0["y"]) > 4)
 if not moved:
     fails.append(f"snake never moved under file:// ({head0} -> {drove})")
-bad = [u for u in requests if not u.startswith("file:")]
+bad = [u for u in requests if not u.startswith("file:") and not u.startswith(ARCADE)]
 if bad:
     fails.append(f"{len(bad)} non-file:// requests: {bad[:3]}")
 

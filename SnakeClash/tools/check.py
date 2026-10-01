@@ -17,6 +17,14 @@ NODE = r"C:\Users\caleb\nodejs\node-v24.18.0-win-x64\node.exe"
 
 path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")
 src = open(path, encoding="utf-8").read()
+# The one allowed outside reference: Caleb's Arcade SDK, loaded first in <head> (pause menu, mute,
+# codes, shared sound kit). The game is guarded to run on its own when it cannot load, so the
+# offline gate below checks everything else.
+ARCADE_SDK_TAG = '<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>'
+if src.count(ARCADE_SDK_TAG) != 1:
+    print("  FAIL  the arcade SDK tag must appear exactly once")
+    sys.exit(1)
+src = src.replace(ARCADE_SDK_TAG, "")
 fails, warns = [], []
 
 if not src.lstrip().startswith("<!DOCTYPE"):

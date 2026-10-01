@@ -1,5 +1,14 @@
 # RUNG RUNNER — moonlight ladder runner
 
+> **3D rebuild (2026-09).** The game now renders in real 3D with three.js r180, vendored with
+> the shared 3D layer in `../lib3d/` (`p3d.js`: toon ramp + rim light, inverted-hull outlines,
+> a gradient sky with matching fog, a soft-shadow sun, instanced Kenney CC0 models, see
+> `../LICENSES.md`). The rules, numbers, scoring, saves and debug hook below are unchanged:
+> the simulation still runs in the same track space and only the renderer and camera changed.
+> Because ES modules and GLB models cannot load from `file://`, play it over HTTP:
+> `node serve.js` (serves the repo root) or any static server at the repo root.
+> Graphics Low = 1x pixel ratio, no shadow pass, fewer props.
+
 Single-file Canvas 2D hyper-casual endless runner. HARD CONSTRAINT like the
 studio's other web games: **fully OFFLINE, one `index.html`, zero network,
 localStorage records.** No build step, no assets, no CDN.

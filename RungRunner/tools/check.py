@@ -17,6 +17,14 @@ NODE = r"C:\Users\caleb\nodejs\node-v24.18.0-win-x64\node.exe"
 
 path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "index.html")
 src = open(path, encoding="utf-8").read()
+# The one allowed outside reference: Caleb's Arcade SDK, loaded first in <head> (pause menu, mute,
+# codes, shared sound kit). The game is guarded to run on its own when it cannot load, so the
+# offline gate below checks everything else.
+ARCADE_SDK_TAG = '<script src="https://calebhomwe.github.io/arcade/assets/arcade-sdk.js"></script>'
+if src.count(ARCADE_SDK_TAG) != 1:
+    print("  FAIL  the arcade SDK tag must appear exactly once")
+    sys.exit(1)
+src = src.replace(ARCADE_SDK_TAG, "")
 fails, warns = [], []
 
 if not src.lstrip().startswith("<!DOCTYPE"):
@@ -27,11 +35,18 @@ if "```" in src:
     fails.append("markdown fence leaked into the file")
 
 # node --check the single inline script
-bodies = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", src, re.S)
+# The 3D renderer (three.js r180 + ../lib3d/p3d.js) is vendored in this repo and mapped by one
+# import map; it must stay local (no CDN), and the game itself is still ONE inline module script.
+maps = re.findall(r"<script type=\"importmap\">(.*?)</script>", src, re.S)
+if len(maps) != 1 or re.search(r"https?:|//", maps[0]) or "../lib3d/three/" not in maps[0]:
+    fails.append("the import map must exist once and point only at the vendored ../lib3d/three/")
+if not os.path.exists(os.path.join(ROOT, "..", "lib3d", "p3d.js")):
+    fails.append("missing the shared 3D layer ../lib3d/p3d.js")
+bodies = re.findall(r"<script(?![^>]*\bsrc=)(?![^>]*importmap)[^>]*>(.*?)</script>", src, re.S)
 if len(bodies) != 1:
     fails.append(f"expected exactly ONE inline <script>, found {len(bodies)}")
 elif os.path.exists(NODE):
-    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+    with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False,
                                      encoding="utf-8") as fh:
         fh.write(bodies[0])
         tmp = fh.name

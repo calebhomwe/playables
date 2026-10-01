@@ -14,6 +14,7 @@ tower rebuilt from a known seed with `clearTower()` / `setSeed()`.
 
 Run:  python tools/playtest.py   (needs playwright; screenshots land in proof/)
 """
+import os
 import pathlib
 import subprocess
 import sys
@@ -23,9 +24,11 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8154
-URL = f"http://localhost:{PORT}/index.html"
+URL = f"http://localhost:{PORT}/{ROOT.name}/index.html?hq"  # repo root so ../lib3d resolves; ?hq pins full resolution (no software-GL downscale) so the census sees every pixel
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 D = "window.__helix_debug"
@@ -40,20 +43,25 @@ def fn(body):
 # Counts canvas pixels that match the game's palette. A dead context, a thrown
 # error inside rAF or a poisoned draw all show up here as a flat frame — which
 # "no errors in the console" would happily hide.
+# The tower is WebGL now (#gl, three.js); the census redraws a frame and reads that canvas back in
+# the same task (no preserveDrawingBuffer needed). Classes are hue tests, because lighting shades
+# every block: safe blue, danger red, bonus gold, the mint ball and the pastel sky behind the tower.
 PIXEL_JS = """()=>{
-  const cv=document.getElementById('cv'), cc=cv.getContext('2d');
+  window.__helix_debug.render();
+  const gl=document.getElementById('gl'), cv=document.createElement('canvas');
+  cv.width=gl.width; cv.height=gl.height;
+  const cc=cv.getContext('2d'); cc.drawImage(gl,0,0);
   const d=cc.getImageData(0,0,cv.width,cv.height).data;
-  const near=(r,g,b,R,G,B,t)=>Math.abs(r-R)<t&&Math.abs(g-G)<t&&Math.abs(b-B)<t;
-  let blue=0,red=0,gold=0,mint=0,dark=0;
+  let blue=0,red=0,gold=0,mint=0,sky=0;
   for(let i=0;i<d.length;i+=4){
     const r=d[i],g=d[i+1],b=d[i+2];
-    if(near(r,g,b,91,110,225,46)||near(r,g,b,127,144,242,40))blue++;
-    if(near(r,g,b,255,45,85,50))red++;
-    if(near(r,g,b,255,198,63,46))gold++;
-    if(near(r,g,b,47,224,200,52))mint++;
-    if(r+g+b<200)dark++;
+    if(b>130&&b>r+50&&b>g+40)blue++;
+    else if(r>170&&g<95&&b<130)red++;
+    else if(r>180&&g>130&&b<120)gold++;
+    else if(g>150&&b>130&&r<150&&g>r+40)mint++;
+    else if(r>215&&g>150&&b>170)sky++;
   }
-  return {blue:blue,red:red,gold:gold,mint:mint,dark:dark,
+  return {blue:blue,red:red,gold:gold,mint:mint,sky:sky,
           total:d.length/4,w:cv.width,h:cv.height};
 }"""
 
@@ -61,7 +69,7 @@ PIXEL_JS = """()=>{
 def main():
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(PORT)],
-        cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cwd=str(ROOT.parent), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.2)
     errors, requests, checks = [], [], []
 
@@ -81,7 +89,7 @@ def main():
 
     try:
         with sync_playwright() as p:
-            br = p.chromium.launch(headless=True)
+            br = p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None, headless=True, args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
             pg = br.new_page(viewport={"width": 1280, "height": 720})
             pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
             pg.on("pageerror", lambda e: errors.append("pageerror: " + str(e)))
@@ -217,8 +225,9 @@ def main():
             pg.wait_for_timeout(180)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
             check("pause screen appears", pg.evaluate(
-                "()=>document.getElementById('s-pause').classList.contains('on')"))
-            pg.click("#resume")
+                "()=>document.getElementById('s-pause').classList.contains('on')"
+                "||!!document.querySelector('#arcade-sdk.on')"))
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(180)
             check("resume continues the run", pg.evaluate(ST)["paused"] is False)
 
@@ -256,7 +265,7 @@ def main():
             check("canvas draws red danger blocks", px["red"] > 250, str(px))
             check("canvas draws gold bonus blocks", px["gold"] > 150, str(px))
             check("canvas draws the mint ball", px["mint"] > 200, str(px))
-            check("canvas draws the dark well", px["dark"] > 4000, str(px))
+            check("canvas draws the pastel sky behind the tower", px["sky"] > 4000, str(px))
             check("canvas is not a flat blank frame",
                   px["total"] > 100000 and px["w"] >= 1280, str(px))
             pg.screenshot(path=str(OUT / "05-render.png"))
@@ -293,7 +302,8 @@ def main():
                   str(saved))
 
             # ---- offline at runtime ---------------------------------------------
-            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}")]
+            bad = [u for u in requests if not u.startswith(f"http://localhost:{PORT}") and not u.startswith(f"blob:http://localhost:{PORT}")
+           and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad, str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
 

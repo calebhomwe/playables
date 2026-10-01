@@ -9,6 +9,7 @@ at runtime. Writes proof/*.png.
 
 Run:  python tools/playtest.py   (needs playwright; screenshots land in proof/)
 """
+import os
 import pathlib
 import subprocess
 import sys
@@ -18,9 +19,11 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# The one allowed outside request: Caleb's Arcade SDK and its shared sound kit (the game runs without them).
+ARCADE = "https://calebhomwe.github.io/arcade/"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8156
-URL = f"http://localhost:{PORT}/index.html"
+URL = f"http://localhost:{PORT}/{ROOT.name}/index.html?hq"  # repo root so ../lib3d resolves; ?hq pins full resolution (no software-GL downscale) so the census sees every pixel
 OUT = ROOT / "proof"
 OUT.mkdir(exist_ok=True)
 ST = "()=>window.__bridge_debug.state()"
@@ -31,7 +34,9 @@ SETUP = ("(extra)=>{const d=window.__bridge_debug;d.start();d.freeze(true);"
          "d.clearTrack();d.setSpawner(false);(new Function('d',extra))(d);"
          "return d.state();}")
 
-CENSUS = ("()=>{const c=document.querySelector('canvas');const g=c.getContext('2d');"
+CENSUS = ("()=>{const D=window.__bridge_debug;D.advance(0);"   # the scene is WebGL (#gl): redraw, read back in the same task
+          "const s=document.getElementById('gl');const c=document.createElement('canvas');"
+          "c.width=s.width;c.height=s.height;const g=c.getContext('2d');g.drawImage(s,0,0);"
           "const w=c.width,h=c.height;const d=g.getImageData(0,0,w,h).data;"
           "let nb=0;const u=new Set();for(let i=0;i<d.length;i+=4*53){"
           "const r=d[i],gg=d[i+1],b=d[i+2];u.add((r>>4)+'_'+(gg>>4)+'_'+(b>>4));"
@@ -45,7 +50,7 @@ def setup(pg, extra=""):
 def main():
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(PORT)],
-        cwd=str(ROOT), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cwd=str(ROOT.parent), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.2)
     errors, requests, checks = [], [], []
 
@@ -56,7 +61,7 @@ def main():
 
     try:
         with sync_playwright() as p:
-            br = p.chromium.launch(headless=True)
+            br = p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH") or None, headless=True, args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
             pg = br.new_page(viewport={"width": 1280, "height": 720})
             pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
             pg.on("pageerror", lambda e: errors.append("pageerror: " + str(e)))
@@ -169,7 +174,7 @@ def main():
             pg.keyboard.press("Escape")
             pg.wait_for_timeout(200)
             check("Escape pauses", pg.evaluate(ST)["paused"] is True)
-            pg.click("#resume")
+            pg.click("#arcade-sdk [data-a=resume]" if pg.evaluate("()=>!!document.querySelector('#arcade-sdk.on')") else "#resume")
             pg.wait_for_timeout(200)
             check("resume continues", pg.evaluate(ST)["paused"] is False)
             pg.evaluate(
@@ -204,14 +209,15 @@ def main():
             setup(pg)
             pg.evaluate("()=>window.__bridge_debug.advance(0.3)")
             check("canvas resizes for portrait",
-                  pg.evaluate("()=>{const c=document.querySelector('canvas');"
+                  pg.evaluate("()=>{const c=document.getElementById('gl');"
                               "return c.width>0 && c.height>c.width;}"))
             pg.screenshot(path=str(OUT / "07-portrait.png"))
 
             # ---- offline at runtime -------------------------------------------
             bad = [u for u in requests
                    if (u.startswith("http://") or u.startswith("https://"))
-                   and not u.startswith(f"http://localhost:{PORT}")]
+                   and not u.startswith(f"http://localhost:{PORT}") and not u.startswith(f"blob:http://localhost:{PORT}")
+                   and not u.startswith(ARCADE)]
             check(f"zero external requests ({len(requests)} total)", not bad,
                   str(bad[:3]))
             check("zero console/page errors", not errors, str(errors[:3]))
