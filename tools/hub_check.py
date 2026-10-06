@@ -1,6 +1,6 @@
 """Hub gate for the PLAYABLES pack landing page.
 
-Serves C:\\Games\\Web\\Playables, loads the launcher, and asserts:
+Serves this repo (the folder above tools/), loads the launcher, and asserts:
   - the shelf renders exactly 6 cards
   - every thumbnail actually loads (naturalWidth > 0)
   - every card link resolves (HTTP 200 to the game's index.html)
@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-ROOT = pathlib.Path(r"C:\Games\Web\Playables")
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 PORT = 8180
 URL = f"http://localhost:{PORT}/index.html"
 OUT = ROOT / "proof"
