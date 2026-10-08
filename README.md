@@ -16,4 +16,4 @@ Six three.js browser games sharing `lib3d/`: Crowd Clash, Bridge Rush, Helix Dro
 
 - **Hub gate** (Python Playwright): `python3 tools/hub_check.py` checks six cards, thumbnails, links, that every game boots, and zero console errors.
 
-The per-game `*/tools/playtest.py` scripts predate the 3D rebuild and several of their assertions (2D pixel census, menu wording) no longer match the games; only Volt Dash's passes as of 2026-10-06.
+The per-game `*/tools/playtest.py` scripts predate the 3D rebuild. Bridge Rush, Helix Drop, Rung Runner and Volt Dash pass (their frame-count and gravity checks now wait for frames rather than a fixed 400 ms, so they hold on slow software GL); Crowd Clash and Snake Clash still carry 2D-era assertions (pixel census, a division gate wiping the crowd, menu wording) and fail.

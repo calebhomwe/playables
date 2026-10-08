@@ -109,9 +109,13 @@ def main():
             pg.screenshot(path=str(OUT / "01-menu.png"))
 
             # ---- the rAF loop is really rendering -------------------------------
-            f0 = pg.evaluate(ST)["frames"]
-            pg.wait_for_timeout(400)
-            f1 = pg.evaluate(ST)["frames"]
+            # Software GL on a busy box can render under 10 fps: wait for the frames, not the clock.
+            f0 = f1 = pg.evaluate(ST)["frames"]
+            for _ in range(30):
+                pg.wait_for_timeout(100)
+                f1 = pg.evaluate(ST)["frames"]
+                if f1 > f0 + 3:
+                    break
             check("rAF render loop is alive", f1 > f0 + 3, f"frames {f0} -> {f1}")
 
             # ---- a hop clears a low zapper, and costs no energy ----------------

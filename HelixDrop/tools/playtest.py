@@ -120,9 +120,13 @@ def main():
             pg.screenshot(path=str(OUT / "01-menu.png"))
 
             # ---- the rAF loop is really rendering ------------------------------
-            f0 = pg.evaluate(ST)["frames"]
-            pg.wait_for_timeout(400)
-            f1 = pg.evaluate(ST)["frames"]
+            # Software GL on a busy box can render under 10 fps: wait for the frames, not the clock.
+            f0 = f1 = pg.evaluate(ST)["frames"]
+            for _ in range(30):
+                pg.wait_for_timeout(100)
+                f1 = pg.evaluate(ST)["frames"]
+                if f1 > f0 + 3:
+                    break
             check("rAF render loop is alive", f1 > f0 + 3, f"frames {f0} -> {f1}")
 
             # ---- start(): the ball is live and falling -------------------------
@@ -132,9 +136,12 @@ def main():
             check("HUD visible while running", pg.evaluate(
                 "()=>document.getElementById('hud').style.display==='flex'"))
             check("a fresh run starts at depth 0", s0["depth"] == 0, str(s0["depth"]))
-            y0 = pg.evaluate(ST)["ballY"]
-            pg.wait_for_timeout(300)
-            y1 = pg.evaluate(ST)["ballY"]
+            y0 = y1 = pg.evaluate(ST)["ballY"]
+            for _ in range(30):   # same: the sim steps per rendered frame, so give a slow GL time to move the ball
+                pg.wait_for_timeout(100)
+                y1 = pg.evaluate(ST)["ballY"]
+                if abs(y1 - y0) > 4:
+                    break
             check("the ball is falling under gravity", abs(y1 - y0) > 4,
                   f"ballY {y0} -> {y1}")
             pg.screenshot(path=str(OUT / "02-play.png"))

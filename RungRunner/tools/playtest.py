@@ -91,9 +91,11 @@ def main():
             body = pg.evaluate("()=>document.body.innerText")
             up, low = body.upper(), body.lower()
             check("menu shows the title", "RUNG" in up and "RUNNER" in up)
+            # The 3D menu lede: 'Auto-run up the road and snatch every floating rung - your stack
+            # must match each wall's number'. Lanes and saws are taught by the in-run coach now.
             check("menu explains the loop",
-                  "auto-run" in low and "lane" in low and "rung" in low
-                  and "wall" in low and "saw" in low, body[:110])
+                  "auto-run" in low and "rung" in low and "wall" in low
+                  and "stack" in low, body[:110])
             check("menu shows the best score", "best" in low)
             check("menu is the active screen", pg.evaluate(
                 "()=>document.getElementById('s-menu').classList.contains('on')"))
