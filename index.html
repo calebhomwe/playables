@@ -170,6 +170,10 @@ const REC = { RungRunner:"rr_rec", VoltDash:"vd_rec", CrowdClash:"cc_rec",
    "best 132" reads as a score when it is metres, and "best 14" as a score when it is length. */
 const REC_UNIT = { RungRunner:"", VoltDash:"", CrowdClash:"", HelixDrop:" depth",
                    SnakeClash:" length", BridgeRush:" m" };
+/* Bridge Rush's .best is a SCORE (metres + 500 for first place, 200 for second); the metres live
+   in .bestDist, which is what its own menu prints as "Best N m". Reading .best here labelled a
+   720-point finish as "best 720 m" on a 220 m span. */
+const REC_FIELD = { BridgeRush:"bestDist" };
 function refreshBests(){
   for (const [dir, key] of Object.entries(REC)){
     const el = document.querySelector('[data-best="' + dir + '"]');
@@ -178,7 +182,9 @@ function refreshBests(){
       const raw = localStorage.getItem(key);
       if (!raw){ el.textContent = "best \u2014"; continue; }
       const rec = JSON.parse(raw);
-      const v = (rec.best !== undefined) ? rec.best
+      const f = REC_FIELD[dir];
+      const v = (f && rec[f] !== undefined) ? rec[f]
+              : (rec.best !== undefined) ? rec.best
               : (rec.bestScore !== undefined) ? rec.bestScore
               : (rec.high !== undefined) ? rec.high : null;
       el.textContent = (v !== null) ? ("best " + v + (REC_UNIT[dir] || "")) : "best \u2014";
