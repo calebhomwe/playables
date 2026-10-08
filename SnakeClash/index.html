@@ -789,7 +789,10 @@ function kill(reason){
   burst(p,150);AU.burst();AU.over();if(navigator.vibrate)try{navigator.vibrate([40,30,60])}catch(e){}
   const cheated=codesOn();   /* a run with codes on never replaces the best */
   if(!cheated)state.best=Math.max(state.best,p.maxLen);
-  const nb=!cheated&&p.maxLen>REC.best;
+  /* Was: p.maxLen>REC.best alone. A fresh profile has REC.best=0 and every snake starts at
+     START_LEN, so dying at once with nothing eaten said "New record!" (and paid the +15 XP). The
+     other cabinets guard with score>0; here zero progress is the starting length. */
+  const nb=!cheated&&p.maxLen>REC.best&&p.maxLen>START_LEN;
   REC.games++;if(!cheated){REC.best=Math.max(REC.best,p.maxLen);
   REC.bestScore=Math.max(REC.bestScore,score());}
   REC.orbs+=state.orbsEaten;REC.kills+=state.kills;store.set('sc_rec',REC);

@@ -83,7 +83,8 @@ def main():
             check("menu explains the loop",
                   "material" in body.lower() and "gap" in body.lower()
                   and "rival" in body.lower())
-            check("menu shows best distance", "Best" in body)
+            # The menu opens on the Races tab ('Race 1 best 0'); Classic says 'Best 0 m'. Either is a best.
+            check("menu shows best distance", "best" in body.lower())
             pg.screenshot(path=str(OUT / "01-menu.png"))
 
             # ---- start() ------------------------------------------------------
