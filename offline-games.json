@@ -1,0 +1,47 @@
+{
+  "namespace": "playables-mobile",
+  "games": [
+    {
+      "id": "bridge-rush",
+      "title": "Bridge Rush",
+      "entry": "BridgeRush/index.html",
+      "start": "#play"
+    },
+    {
+      "id": "crowd-clash",
+      "title": "Crowd Clash",
+      "entry": "CrowdClash/index.html",
+      "start": "#play"
+    },
+    {
+      "id": "helix-drop",
+      "title": "Helix Drop",
+      "entry": "HelixDrop/index.html",
+      "start": "#play"
+    },
+    {
+      "id": "rung-runner",
+      "title": "Rung Runner",
+      "entry": "RungRunner/index.html",
+      "start": "#play"
+    },
+    {
+      "id": "snake-clash",
+      "title": "Snake Clash",
+      "entry": "SnakeClash/index.html",
+      "start": "#play"
+    },
+    {
+      "id": "volt-dash",
+      "title": "Volt Dash",
+      "entry": "VoltDash/index.html",
+      "start": "#play"
+    }
+  ],
+  "shell": [
+    "index.html",
+    "sw.js",
+    "offline-worker.js"
+  ],
+  "repository": "playables"
+}

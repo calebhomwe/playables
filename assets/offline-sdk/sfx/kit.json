@@ -1,0 +1,335 @@
+{
+ "about": "Shared sound effects for arcade games. Play one with ArcadeSDK.sfx(name) (see assets/arcade-sdk.js). Made with ElevenLabs sound generation on the Creator plan, which includes a commercial licence; the prompt for each sound is listed. \"gain\" brings every sound to about -20 dBFS RMS with the peak under -1 dBFS; ArcadeSDK.sfx applies it.",
+ "sounds": {
+  "tap": {
+   "use": "Menu taps and light presses",
+   "seconds": 0.5,
+   "prompt": "soft UI tap, short crisp click, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.944,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -23.8,
+    "peak_dbfs": -0.5
+   }
+  },
+  "button": {
+   "use": "Big buttons: Play, Buy, Build",
+   "seconds": 0.5,
+   "prompt": "chunky game button press, satisfying plastic pop, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.891,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -19.8,
+    "peak_dbfs": 0.0
+   }
+  },
+  "coin": {
+   "use": "A coin or point collected",
+   "seconds": 0.8,
+   "prompt": "cartoon coin pickup, single bright chime, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 1.462,
+   "measured": {
+    "seconds": 0.8,
+    "rms_dbfs": -23.5,
+    "peak_dbfs": -4.3
+   }
+  },
+  "collect": {
+   "use": "Picking up an item",
+   "seconds": 0.8,
+   "prompt": "item collect, quick rising sparkly twinkle, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 4.842,
+   "measured": {
+    "seconds": 0.8,
+    "rms_dbfs": -35.5,
+    "peak_dbfs": -14.7
+   }
+  },
+  "powerup": {
+   "use": "A power-up starts",
+   "seconds": 1.2,
+   "prompt": "arcade power-up, rising synth arpeggio, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.372,
+   "measured": {
+    "seconds": 1.2,
+    "rms_dbfs": -11.4,
+    "peak_dbfs": -2.4
+   }
+  },
+  "levelup": {
+   "use": "Level or rank up",
+   "seconds": 2.0,
+   "prompt": "level up fanfare, short triumphant brass and chimes, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.55,
+   "measured": {
+    "seconds": 2.0,
+    "rms_dbfs": -14.8,
+    "peak_dbfs": -0.1
+   }
+  },
+  "win": {
+   "use": "Level complete or win",
+   "seconds": 2.5,
+   "prompt": "victory jingle, cheerful short orchestral hit with sparkles, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.631,
+   "measured": {
+    "seconds": 2.48,
+    "rms_dbfs": -16.0,
+    "peak_dbfs": 0.0
+   }
+  },
+  "lose": {
+   "use": "Game over or loss",
+   "seconds": 2.0,
+   "prompt": "gentle game over, soft descending cartoon trombone, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.442,
+   "measured": {
+    "seconds": 2.0,
+    "rms_dbfs": -12.9,
+    "peak_dbfs": -0.0
+   }
+  },
+  "hit": {
+   "use": "Hitting an enemy or target",
+   "seconds": 0.5,
+   "prompt": "punchy cartoon hit impact thud, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.596,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -15.5,
+    "peak_dbfs": 0.0
+   }
+  },
+  "hurt": {
+   "use": "The player is hurt",
+   "seconds": 0.6,
+   "prompt": "player takes damage, soft cartoon oof blip, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.49,
+   "measured": {
+    "seconds": 0.6,
+    "rms_dbfs": -13.8,
+    "peak_dbfs": 0.0
+   }
+  },
+  "explode": {
+   "use": "Something blows up",
+   "seconds": 1.2,
+   "prompt": "small cartoon explosion puff, not scary, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.776,
+   "measured": {
+    "seconds": 1.2,
+    "rms_dbfs": -17.8,
+    "peak_dbfs": 0.0
+   }
+  },
+  "jump": {
+   "use": "Jump",
+   "seconds": 0.6,
+   "prompt": "cartoon jump boing, springy, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.617,
+   "measured": {
+    "seconds": 0.6,
+    "rms_dbfs": -15.8,
+    "peak_dbfs": 0.0
+   }
+  },
+  "land": {
+   "use": "Landing",
+   "seconds": 0.5,
+   "prompt": "soft landing thump with a little dust, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 1.841,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -25.3,
+    "peak_dbfs": -7.1
+   }
+  },
+  "whoosh": {
+   "use": "Dash, swipe, fast move",
+   "seconds": 0.6,
+   "prompt": "quick air whoosh swipe, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.653,
+   "measured": {
+    "seconds": 0.6,
+    "rms_dbfs": -16.3,
+    "peak_dbfs": 0.0
+   }
+  },
+  "pop": {
+   "use": "Bubbles, balloons, small pops",
+   "seconds": 0.5,
+   "prompt": "bubble pop, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.7,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -16.9,
+    "peak_dbfs": -0.2
+   }
+  },
+  "error": {
+   "use": "Wrong answer or invalid move",
+   "seconds": 0.6,
+   "prompt": "gentle wrong-answer buzz, soft, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.403,
+   "measured": {
+    "seconds": 0.6,
+    "rms_dbfs": -12.1,
+    "peak_dbfs": -3.2
+   }
+  },
+  "correct": {
+   "use": "Right answer",
+   "seconds": 0.8,
+   "prompt": "correct answer ding, bright two-note chime, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.556,
+   "measured": {
+    "seconds": 0.8,
+    "rms_dbfs": -14.9,
+    "peak_dbfs": 0.0
+   }
+  },
+  "tick": {
+   "use": "Timer tick",
+   "seconds": 0.5,
+   "prompt": "single clock tick, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 1.096,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -24.8,
+    "peak_dbfs": -1.8
+   }
+  },
+  "countdown": {
+   "use": "3-2-1 beeps",
+   "seconds": 0.5,
+   "prompt": "race countdown beep, single short beep, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.55,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -14.8,
+    "peak_dbfs": -0.1
+   }
+  },
+  "go": {
+   "use": "GO!",
+   "seconds": 0.8,
+   "prompt": "race start, higher beep with a whoosh, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.767,
+   "measured": {
+    "seconds": 0.8,
+    "rms_dbfs": -17.7,
+    "peak_dbfs": -0.5
+   }
+  },
+  "unlock": {
+   "use": "Something unlocked",
+   "seconds": 1.2,
+   "prompt": "magical unlock shimmer with a soft click, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 5.07,
+   "measured": {
+    "seconds": 1.2,
+    "rms_dbfs": -36.5,
+    "peak_dbfs": -15.1
+   }
+  },
+  "cheer": {
+   "use": "Big success",
+   "seconds": 2.5,
+   "prompt": "small crowd cheer and applause, short, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 1.334,
+   "measured": {
+    "seconds": 2.48,
+    "rms_dbfs": -23.4,
+    "peak_dbfs": -3.5
+   }
+  },
+  "splash": {
+   "use": "Water",
+   "seconds": 1.0,
+   "prompt": "water splash, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 3.126,
+   "measured": {
+    "seconds": 1.0,
+    "rms_dbfs": -31.0,
+    "peak_dbfs": -10.9
+   }
+  },
+  "place": {
+   "use": "Placing a tile, block or tower",
+   "seconds": 0.5,
+   "prompt": "placing a wooden block, clean clack, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.923,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -21.8,
+    "peak_dbfs": -0.3
+   }
+  },
+  "swap": {
+   "use": "Swapping tiles",
+   "seconds": 0.5,
+   "prompt": "tile swap swish, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.335,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -10.5,
+    "peak_dbfs": 0.0
+   }
+  },
+  "match": {
+   "use": "A match or merge",
+   "seconds": 0.8,
+   "prompt": "match three, bright crystal chime, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 2.113,
+   "measured": {
+    "seconds": 0.8,
+    "rms_dbfs": -26.5,
+    "peak_dbfs": -8.5
+   }
+  },
+  "combo": {
+   "use": "Combo",
+   "seconds": 1.2,
+   "prompt": "combo streak, fast ascending chimes, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.537,
+   "measured": {
+    "seconds": 1.2,
+    "rms_dbfs": -14.6,
+    "peak_dbfs": -0.8
+   }
+  },
+  "reward": {
+   "use": "A reward or prize",
+   "seconds": 1.8,
+   "prompt": "treasure chest opening with sparkles, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 1.531,
+   "measured": {
+    "seconds": 1.76,
+    "rms_dbfs": -26.6,
+    "peak_dbfs": -4.7
+   }
+  },
+  "shoot": {
+   "use": "Shooting",
+   "seconds": 0.5,
+   "prompt": "cartoon laser blaster pew, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.55,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -14.8,
+    "peak_dbfs": 0.0
+   }
+  },
+  "card": {
+   "use": "Flipping a card or tile",
+   "seconds": 0.5,
+   "prompt": "playing card flip, bright clean mobile game sound, family friendly, no music, no voice",
+   "gain": 0.891,
+   "measured": {
+    "seconds": 0.48,
+    "rms_dbfs": -22.3,
+    "peak_dbfs": 0.0
+   }
+  }
+ }
+}

@@ -1,0 +1,4 @@
+
+# Offline browser regression output
+qa/offline/node_modules/
+qa/offline-results/
