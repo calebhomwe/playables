@@ -25,6 +25,9 @@ def directory(p): return [f.relative_to(ROOT).as_posix() for f in p.rglob('*') i
 def dependencies(entry, whole_folder=True):
     files=set([entry]);entry_path=physical(entry)
     if whole_folder and entry_path.parent!=ROOT and entry_path.parent.name!='games':files.update(f for f in directory(entry_path.parent) if not f.endswith('.html') or f==entry)
+    # A flat game entry may delegate to a same-name module/model directory.
+    sibling=entry_path.with_suffix('')
+    if whole_folder and sibling.is_dir():files.update(directory(sibling))
     # Document-relative dynamic image/audio helpers in the shared game kits.
     if entry.startswith('games/') and (ROOT/'games/assets').is_dir():
         files.update(directory(ROOT/'games/assets'))

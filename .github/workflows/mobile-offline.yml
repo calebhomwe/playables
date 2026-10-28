@@ -1,9 +1,12 @@
 name: Mobile offline regression
 on:
   push:
-    branches: [main, master, 'offline/**']
+    branches: [main, master]
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: mobile-offline-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   offline:
     runs-on: ubuntu-latest

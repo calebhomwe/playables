@@ -22,6 +22,16 @@ async function suite(engine){
  try{
   let warm=await context.newPage();await warm.goto(origin+'/'+repo+'/index.html');
   await warm.evaluate(async()=>{const reg=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});if(reg.active)return;await new Promise((resolve,reject)=>{const w=reg.installing||reg.waiting;w.addEventListener('statechange',()=>{if(w.state==='activated')resolve();if(w.state==='redundant')reject(Error('Offline install failed'));});});});
+  if(repo==='arcade'){
+   try{
+    await warm.goto(origin+'/'+repo+'/offline.html');
+    await warm.locator('#game-search').fill('High Nest');
+    const card=warm.locator('article[data-game="high-nest"]');await card.locator('button').tap();
+    await warm.waitForFunction(()=>document.querySelector('article[data-game="high-nest"] .status')?.dataset.ready==='true',{},{timeout:120000});
+    assert.equal(await warm.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true,'installer horizontal overflow');
+    await warm.screenshot({path:path.join(output,engine.name()+'-installer.png')});
+   }catch(error){await warm.screenshot({path:path.join(output,engine.name()+'-installer-failure.png')}).catch(()=>{});throw error;}
+  }
   for(const game of spec.games.filter(g=>!filter||filter.includes(g.id))){
    let page;const errors=[];
    try{
