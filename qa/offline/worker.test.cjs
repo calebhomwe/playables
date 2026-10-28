@@ -24,7 +24,7 @@ function setup(options = {}) {
     fetches.push(request);
     if(options.offline) throw Error('disconnected');
     const bad = request.url.endsWith(options.fail || '__none__');
-    return new Response(options.corrupt ? 'XXXXXXXXXX' : contents, { status:bad?404:200, headers:{'Content-Type':'audio/mpeg'} });
+    return new Response(options.corrupt ? 'XXXXXXXXXX' : contents, { status:bad?404:200, headers:{'Content-Type':'audio/mpeg','Content-Encoding':options.encoding||'identity'} });
   };
   const context = vm.createContext({ self, URL, Request, Response, Headers, caches, fetch, crypto:webcrypto, console, Date, Map, Uint8Array, Number });
   vm.runInContext(source, context);
@@ -56,9 +56,9 @@ test('cold offline navigation handles a start URL query and root alias without n
   assert.equal((await s.get('never-downloaded.html',{},'navigate')).status,504);
 });
 test('offline audio supports bounded, open, suffix, clipped and invalid Safari ranges',async()=>{
-  const s=setup();await s.lifecycle('install');s.options.offline=true;
+  const s=setup({encoding:'gzip'});await s.lifecycle('install');s.options.offline=true;
   for(const [range,status,text] of [['bytes=2-4',206,'234'],['bytes=7-',206,'789'],['bytes=-3',206,'789'],['bytes=8-99',206,'89'],['bytes=99-',416,''],['bytes=4-2',416,''],['bytes=-0',416,''],['bytes=0-1,4-5',416,'']]){
-    const r=await s.get('song.mp3',{Range:range});assert.equal(r.status,status,range);assert.equal(await r.text(),text,range);assert.equal(r.headers.get('accept-ranges'),'bytes');
+    const r=await s.get('song.mp3',{Range:range});assert.equal(r.status,status,range);assert.equal(await r.text(),text,range);assert.equal(r.headers.get('accept-ranges'),'bytes');assert.equal(r.headers.get('content-encoding'),null);
   }
 });
 test('a game is ready only after the package transaction commits',async()=>{

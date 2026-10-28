@@ -57,7 +57,7 @@ self.addEventListener('install', event => {
     const cache = await caches.open(shellName);
     try {
       await fill(cache, config.shell, async progress => {
-        for (const client of await self.clients.matchAll({ includeUncontrolled: true })) client.postMessage(progress);
+        for (const client of await self.clients.matchAll({ includeUncontrolled: true })) if (client.url.startsWith(base.href)) client.postMessage(progress);
       });
       await mark(cache);
     } catch (error) {
@@ -127,6 +127,8 @@ async function rangeResponse(request, response) {
     end = Math.min(end, length - 1);
   }
   const headers = new Headers(response.headers);
+  headers.delete('Content-Encoding'); // arrayBuffer() is already decoded.
+  headers.delete('Transfer-Encoding');
   headers.set('Accept-Ranges', 'bytes');
   if (!match || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start >= length || end < start) {
     headers.set('Content-Range', `bytes */${length}`); headers.set('Content-Length', '0');

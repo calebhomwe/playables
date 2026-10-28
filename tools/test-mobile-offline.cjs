@@ -52,8 +52,14 @@ async function suite(engine){
     const snapshot=await page.evaluate(()=>{const out={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);out[k]=localStorage.getItem(k);}return out;});
     await page.close();page=await context.newPage();await page.goto(origin+'/'+repo+'/'+game.entry,{waitUntil:'load'});
     const restored=await page.evaluate(()=>{const out={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);out[k]=localStorage.getItem(k);}return out;});
-    for(const [key,value]of Object.entries(snapshot))if(!/last|time|session|play|visit|streak|daily/i.test(key))assert.equal(restored[key],value,'save changed across reload: '+key);
-    results.push({id:game.id,result:'offline-boot-input-smoke-pass',engine:engine.name(),gameplayReview:'not established by this smoke test',errors});
+    assert.equal(restored.__offline_save_sentinel,'preserved');
+    // Game state may legitimately advance on boot (idle earnings, daily state).
+    // Primitive best-score records must survive; keep all observed key names as evidence.
+    for(const [key,value]of Object.entries(snapshot)){
+      let parsed;try{parsed=JSON.parse(value);}catch{parsed=value;}
+      if(/(?:_rec|_best|highscore|best_score)$/i.test(key)&&['number','string','boolean'].includes(typeof parsed))assert.equal(restored[key],value,'record changed across reload: '+key);
+    }
+    results.push({id:game.id,result:'offline-boot-input-smoke-pass',engine:engine.name(),gameplayReview:'not established by this smoke test',saveKeysObserved:Object.keys(snapshot),errors});
    }catch(error){
     results.push({id:game.id,result:'failure',engine:engine.name(),error:String(error),errors});
     if(page&&!page.isClosed())await page.screenshot({path:path.join(output,engine.name()+'-'+game.id+'-failure.png')}).catch(()=>{});
